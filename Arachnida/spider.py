@@ -40,53 +40,94 @@ def display_loading (image, index):
         print("\033[F\033[K", end='')
     print(f"\t{image}")
 
+def crawl(URL, site_name, visited, depth, max_depth, index):
+    if depth > max_depth or URL in visited:
+        return index
+    visited.add(URL)
+    
 
+def get_internal_links(URL, soup):
+    domain = urlparse(URL).netloc
+    links = set()
+    for a_tag in soup.find_all("a", href=True):
+        link = urljoin(URL, a_tag['href'])
+        if urlparse(link).netloc == domain:
+            links.add(link)
+    return links
 
+def process_page(URL, site_name, visited, index):
+    if URL in visited:
+        return index
+    visited.add(URL)
+    
+    response = requests.get(URL)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    imgs = soup.find_all('img')
+    for img in imgs:
+        i = image(URL, site_name, img, index)
+        urlretrieve(i.full_URL, i.img_full_path)
+        display_loading(i, index)
+        index+=1
+    return index, soup
 
+URL = sys.argv[-1]
+recursive = "-r" in sys.argv
+visited = set()
+site_name = urlparse(URL).netloc.replace(".", "-")
+index = 1
 
-#! CHECKING ARGV
-if (len(sys.argv) < 2) :
-    print("ERROR : missing url \n\tpython spider.py [-rlp] URL\n")
-    sys.exit()
+index, soup = process_page(URL, site_name, visited, index)
 
-#! GET URL AND SITE NAME WITH ARGV
-URL = sys.argv[len(sys.argv) - 1]
-parsed_url = urlparse(URL)
-site_name = parsed_url.netloc
+if recursive :
+        links = get_internal_links(URL, soup)
+        for link in links:
+            index, _ = process_page(link, site_name, visited, index)
 
-#! GETTING HTML WITH URL
-try:
-    page = requests.get(URL)
-    print(f"\033[92m[+] working on {site_name}\033[0m")
-except requests.exceptions.RequestException as e:
-    print(f"\033[91m[-] ERROR : failed to join {site_name}\033[0m")
-    sys.exit()
+# #! CHECKING ARGV
+# if (len(sys.argv) < 2) :
+#     print("ERROR : missing url \n\tpython spider.py [-rlp] URL\n")
+#     sys.exit()
 
-#! SOUPIFY IT
-soup = BeautifulSoup(page.content, "html.parser")
+# #! GET URL AND SITE NAME WITH ARGV
+# URL = sys.argv[len(sys.argv) - 1]
+# parsed_url = urlparse(URL)
+# site_name = parsed_url.netloc
 
-#! FIND ALL IMG
-result = soup.find_all("img")
+# #! GETTING HTML WITH URL
+# try:
+#     page = requests.get(URL)
+#     print(f"\033[92m[+] working on {site_name}\033[0m")
+# except requests.exceptions.RequestException as e:
+#     print(f"\033[91m[-] ERROR : failed to join {site_name}\033[0m")
+#     sys.exit()
 
-index = 0
-for img in result:
-    if "src" in img.attrs:
+# #! SOUPIFY IT
+# soup = BeautifulSoup(page.content, "html.parser")
+
+# #! FIND ALL IMG
+# result = soup.find_all("img")
+
+# index = 0
+# for img in result:
+#     if "src" in img.attrs:
         
         
-            current = image(URL, site_name, img, index)
+#             current = image(URL, site_name, img, index)
             
-            if current.extension not in ["jpg", "jpeg", "png", "gif", "bmp"]:
-                if index == 0 and img == result[-1]:
-                    print("No images were downloaded.")
-                continue
+#             if current.extension not in ["jpg", "jpeg", "png", "gif", "bmp"]:
+#                 if index == 0 and img == result[-1]:
+#                     print("No images were downloaded.")
+#                 continue
             
-            index += 1
+#             index += 1
             
-            urlretrieve(current.full_URL, current.img_full_path)
+#             urlretrieve(current.full_URL, current.img_full_path)
             
             
-            display_loading(current, index)
+#             display_loading(current, index)
 
     
-print("\033[F\033[K", end='')
-print(f"\tDownloaded {index} images")        
+# print("\033[F\033[K", end='')
+# print(f"\tDownloaded {index} images")
+
+ 
