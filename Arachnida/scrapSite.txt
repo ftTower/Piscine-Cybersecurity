@@ -1,2 +1,4 @@
 http://unsplash.com
-https://books.toscrape.com/
+http://libreshot.com
+https://books.toscrape.com
+https://webscraper.io/test-sites/e-commerce/static

@@ -1,10 +1,48 @@
 import sys
 import requests
+import os
+import mimetypes
 
 from bs4 import BeautifulSoup
 from urllib.request import urlretrieve
 from urllib.parse import urlparse
 from urllib.parse import urljoin
+
+class   image:
+    def __init__(self, URL, site_name, img, index):
+        #! DATA
+        self.URL = URL
+        self.img_URL = img["src"]
+        self.full_URL = urljoin(URL, self.img_URL)
+        
+        self.index = index
+        #! DL PATH
+        self.img_path = ".data" + "/" + site_name
+        os.makedirs(self.img_path, exist_ok=True) #* MAKE A DIRECTORY TO SORT SITE
+        
+        #! GUESS EXTENSION
+        self.extension = mimetypes.guess_type(self.full_URL)[0]
+        if self.extension:
+            self.extension = self.extension.split('/')[-1]
+        else:
+            self.extension = "png"
+        
+        #!NAMES x PATHS
+        self.img_name = site_name + "_" + str(index) 
+        self.img_full_path = self.img_path + "/" + self.img_name + "." + self.extension #* PATH + NAME + EXT
+  
+        
+    def __str__(self):
+        return f"{self.index:03} - {self.img_full_path}"
+        
+def display_loading (image, index):
+    if index > 1:
+        print("\033[F\033[K", end='')
+    print(f"\t{image}")
+
+
+
+
 
 #! CHECKING ARGV
 if (len(sys.argv) < 2) :
@@ -19,27 +57,36 @@ site_name = parsed_url.netloc
 #! GETTING HTML WITH URL
 try:
     page = requests.get(URL)
-    # print(f"[+] working on {URL}\n")
+    print(f"\033[92m[+] working on {site_name}\033[0m")
 except requests.exceptions.RequestException as e:
-    print(f"ERROR: Failed to fetch the URL.\n\nDetails:\n{e}")
+    print(f"\033[91m[-] ERROR : failed to join {site_name}\033[0m")
     sys.exit()
 
 #! SOUPIFY IT
 soup = BeautifulSoup(page.content, "html.parser")
 
-#! FIND IMG LINKS IN 
+#! FIND ALL IMG
 result = soup.find_all("img")
-nb_img = 0
+
+index = 0
 for img in result:
     if "src" in img.attrs:
-        img_url = img["src"]
-        full_img_url = urljoin(URL, img_url)
-        nb_img += 1
-        name_img = ".data/" + site_name + "_"  + str(nb_img) + ".png"
-        try:
-            urlretrieve(full_img_url, name_img)
-        except Exception as e:
-            print(f"Erreur lors du téléchargement de {full_img_url}: {e}")
+        
+        
+            current = image(URL, site_name, img, index)
+            
+            if current.extension not in ["jpg", "jpeg", "png", "gif", "bmp"]:
+                if index == 0 and img == result[-1]:
+                    print("No images were downloaded.")
+                continue
+            
+            index += 1
+            
+            urlretrieve(current.full_URL, current.img_full_path)
+            
+            
+            display_loading(current, index)
 
-print(f"Found {nb_img} images on {URL}")
-
+    
+print("\033[F\033[K", end='')
+print(f"\tDownloaded {index} images")        

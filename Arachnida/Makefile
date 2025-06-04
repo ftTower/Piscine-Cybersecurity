@@ -5,12 +5,17 @@ NAME = spider.py
 .PHONY: run clean
 
 run:
+	echo
 	@while read url; do \
-		python3 $(NAME) "$$url"; \
+		python3 $(NAME) -r "$$url"; \
 	done < scrapSite.txt
+	echo
 
 clean:
 	rm -rf .data/*
 
-re: clean run
+clear:
+	clear
+
+re: clear clean run
 
