@@ -1,4 +1,5 @@
-http://unsplash.com
-http://libreshot.com
-https://books.toscrape.com
 https://webscraper.io/test-sites/e-commerce/static
+https://www.photos-public-domain.com/
+https://free-images.com/
+http://libreshot.com
+http://unsplash.com
