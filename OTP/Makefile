@@ -13,11 +13,13 @@ run: clear
 g  : clear
 	rm -f key.hex
 	touch key.hex
-	head -c 64 /dev/urandom | xxd -p > key.hex
+	head -c 64 /dev/urandom | xxd -p | tr -d '\n' > key.hex
 	$(PYTHON) $(SCRIPT) -g key.hex
 
-k  : clear
-	$(PYTHON) $(SCRIPT) -k "$(shell head -c 10 /dev/urandom | tr -dc '[:print:]')"
+k  : 
+	$(PYTHON) $(SCRIPT) -k ft_otp.key
 
+
+all : g k
 
 .PHONY: run
