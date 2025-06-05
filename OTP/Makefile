@@ -2,22 +2,26 @@
 
 PYTHON := python3
 SCRIPT := otp-generator.py
-ARGV   := -g key.hex
+
+
+HEXA_KEY_FILE := key.hex
+CRYPTED_KEY_FILE := ft_otp.key
 
 clear:
 	clear
 
-run: clear
-	@$(PYTHON) $(SCRIPT) $(ARGV)
+clean: clear
+	rm -f $(HEXA_KEY_FILE)
+	rm -f $(CRYPTED_KEY_FILE)
 
-g  : clear
-	rm -f key.hex
-	touch key.hex
-	head -c 64 /dev/urandom | xxd -p | tr -d '\n' > key.hex
-	$(PYTHON) $(SCRIPT) -g key.hex
+g  : clean
+	rm -f $(HEXA_KEY_FILE)
+	touch $(HEXA_KEY_FILE)
+	head -c 64 /dev/urandom | xxd -p | tr -d '\n' > $(HEXA_KEY_FILE)
+	$(PYTHON) $(SCRIPT) -g $(HEXA_KEY_FILE)
 
 k  : 
-	$(PYTHON) $(SCRIPT) -k ft_otp.key
+	$(PYTHON) $(SCRIPT) -k $(CRYPTED_KEY_FILE)
 
 
 all : g k

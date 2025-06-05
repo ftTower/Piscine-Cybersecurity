@@ -1,4 +1,6 @@
 import sys
+import hmac, base64, struct, hashlib, time
+
 from cryptography.fernet import Fernet
 from scanf import scanf
 
@@ -49,6 +51,30 @@ class string_process:
         self.enc_file_path = enc_file_path
         self.key = None
 
+    @staticmethod
+    def get_hotp_token(secret, intervals_no):
+        try:
+            key = base64.b32decode(secret, True)
+        except base64.binascii.Error:
+            raise ValueError("Invalid Base32 secret: Ensure the secret is properly Base32-encoded.")
+        
+        msg = struct.pack(">Q", intervals_no)
+        
+        h = hmac.new(key, msg, hashlib.sha1).digest()
+        
+        o = o = h[19] & 15
+        
+        h = (struct.unpack(">I", h[o:o+4])[0] & 0x7fffffff) % 1000000
+            
+        return h
+    
+    def get_totp_token(self, secret):
+        x = str(self.get_hotp_token(secret, intervals_no=int(time.time())//30))
+        
+        while(len(x) != 6):
+            x+='0'
+        return x
+
     def process(self):
         
         print("\033[1;35mPlease enter the encryption key for the file:\033[0m")
@@ -57,8 +83,15 @@ class string_process:
         try:
             encryption_key = encryption_key[0].encode()
             fernet = Fernet(encryption_key)
+            try:
+                with open(self.enc_file_path, 'rb') as enc_file:
+                    encrypted = enc_file.read()
+                self.key = fernet.decrypt(encrypted)
+            except cryptography.fernet.InvalidToken:
+                print("\033[91mError: Invalid encryption key. Decryption failed.\033[0m")
+                sys.exit()
         except Exception as e:
-            print(f"\033[91mError: Invalid encryption key. {e}\033[0m")
+            print(f"\033[91mError: Invalid encryption key. \033[0m")
             sys.exit()
         
         with open(self.enc_file_path, 'rb') as enc_file:
@@ -66,8 +99,23 @@ class string_process:
             
         self.key = fernet.decrypt(encrypted)
         
-        print("\033[1;32mThe encryption key is valid and the file has been successfully decrypted.\033[0m")
-        print(f"\n{self.key.decode()}")
+        print("\n\033[1;32mThe encryption key is valid and the file has been successfully decrypted.\033[0m\n\n")
+        
+        try:
+            while True:
+                try:
+                    decoded_key = base64.b32encode(self.key).decode('utf-8')
+                    print("\033[F\033[K", end='')
+                    print(f"\t\033[1;33m🔑 {self.get_totp_token(decoded_key)}\033[0m")
+                    time.sleep(1)  # Wait for 1 second before generating the next token
+                except Exception as e:
+                    print(f"\033[91mError: Failed to Base32-encode the key. {e}\033[0m")
+                    sys.exit()
+        except KeyboardInterrupt:
+            print("\n\033[91mProcess interrupted by user. Bye bye...\033[0m")
+            sys.exit()
+        
+
         
         
         
