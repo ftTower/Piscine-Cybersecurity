@@ -1,0 +1,6 @@
+file <filename> //give data
+strings <filename> | less // compact data
+
+xxd <filename> | less // hexdump
+
+objdump -d -Mintel <filename> | less // get assembly
