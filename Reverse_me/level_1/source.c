@@ -1,17 +1,17 @@
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 
 int main(void) {
 
-    char *key = NULL;
+    char key[256];
 
-    scanf("Please enter key: %s", &key);
+    printf("Please enter key: ");
+    scanf("%255s", key);
     if (strcmp(key, "__stack_check"))
         printf("Nope.\n");
     else
-        print("Good job.\n");
-
+        printf("Good job.\n");
     return (0);
 }
 
