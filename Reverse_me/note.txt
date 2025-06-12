@@ -4,3 +4,85 @@ strings <filename> | less // compact data
 xxd <filename> | less // hexdump
 
 objdump -d -Mintel <filename> | less // get assembly
+
+nm <filename> // file symbol
+
+
+
+
+
+
+dissas:
+
+OPERATION SOURCE, DESTINATION
+
+RAX, EAX, AX, AL impliquent respectivement :
+qword (64 bits),
+long (double word, 32 bits),
+word (16 bits),
+byte (octet 8 bits).
+
+
+EAX : registre accumulateur (accumulator register).
+    Utilisé pour les opérations arithmétiques et le stockage
+    de la valeur de retour des appels systèmes.
+EDX : registre de données (data register).
+    Utilisé pour les opérations arithmétiques et les opérations
+    d'entrée/sortie.
+ECX : registre compteur (counter register).
+    Utilisé comme compteur par certaines instructions, permettant
+    de répéter une série d'instructions un nombre de fois prédéterminé.
+EBX : registre de base (base register).
+    Utilisé comme pointeur de donnée (située dans DS en mode segmenté,
+    segment par défaut) ou sert de base au calcul d'une adresse.
+
+I Quelques exemples (point-virgule = un commentaire) :
+mov eax, 3 ; stocke 3 dans le registre EAX
+mov bx, ax ; stocke la valeur de AX dans BX
+I ADD = additionner des entiers
+add eax, 4 ; eax = eax + 4
+add al, ah ; al = al + ah
+I SUB = soustraire des entiers
+sub bx, 10 ; bx = bx - 10
+sub ebx, edi ; ebx = ebx - edi
+I INC et DEC incr´ementent ou d´ecr´ementent les valeurs de 1
+Le un ´etant implicite, le code machine pour INC et DEC est
+plus petit que ADD et SUB ´equivalentes
+inc ecx ; ecx++
+dec dl ; dl--
+
+
+🔹 Prologue standard de fonction (stack frame setup) :
+asm
+```
+0x12d0: push %ebp
+0x12d1: mov %esp, %ebp
+0x12d3: push %ebx
+0x12d4: sub $0x54, %esp
+```
+✅ Ce bloc :
+
+Sauvegarde la base de pile (ebp)
+
+Crée une nouvelle stack frame
+
+Sauvegarde ebx (car il est callee-saved)
+
+Réserve 0x54 = 84 octets pour des variables locales
+
+🔹 Technique de calcul de base d’adresse (position-independence) :
+asm
+```
+0x12d7: call 0x12dc
+0x12dc: pop %ebx
+0x12dd: add $0x5d24, %ebx
+```
+✅ Cette séquence est très typique d'un exécutable PIE (Position Independent Executable).
+
+Le call pousse l'adresse de l'instruction suivante (0x12dc) sur la stack
+
+pop %ebx récupère cette adresse dans ebx
+
+add $0x5d24, %ebx convertit cette adresse relative en adresse absolue d'une section de données (typiquement .rodata)
+
+🔁 Cela permet de créer un pointeur vers les chaînes ou les structures compilées même si le binaire est chargé à une adresse différente à chaque exécution.

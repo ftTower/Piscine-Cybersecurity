@@ -4,11 +4,12 @@
 
 int main(void) {
 
+    const char comp[] = "__stack_check";
     char key[256];
 
     printf("Please enter key: ");
     scanf("%255s", key);
-    if (strcmp(key, "__stack_check"))
+    if (strcmp(key, comp))
         printf("Nope.\n");
     else
         printf("Good job.\n");
