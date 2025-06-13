@@ -1,5 +1,6 @@
 import sys
 import hmac, base64, struct, hashlib, time
+import cryptography
 
 from cryptography.fernet import Fernet
 from scanf import scanf

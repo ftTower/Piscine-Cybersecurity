@@ -10,10 +10,10 @@ clear:
 clean: clear
 	
 encrypt: clear
-	python3 ./$(SCRIPT) --version 
+	python3 ./$(SCRIPT) --version
 
 reverse:
-	python3 ./$(SCRIPT) --version --reverse "$(shell cat $(FILEKEY))"
+	python3 ./$(SCRIPT) --reverse "$(shell cat $(FILEKEY))" 
 
 
 
