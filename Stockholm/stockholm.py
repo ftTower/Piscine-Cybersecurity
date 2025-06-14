@@ -145,8 +145,7 @@ class Stockholm :
         
         
         
-        
-               
+#! verifier les extensions de fichier, renommer .ft , deployer sur vm
         
         
           
