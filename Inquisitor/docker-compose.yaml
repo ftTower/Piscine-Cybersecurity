@@ -1,0 +1,40 @@
+version: '3'
+services:
+  ftp-server:
+    image: fauria/vsftpd
+    container_name: ftp-server
+    ports:
+      - "2121:21"
+      - "21100-21110:21100-21110"
+    environment:
+      - FTP_USER=user
+      - FTP_PASS=pass
+      - PASV_ADRESS=ftp-server
+      - PASV_MIN_PORT=21100
+      - PASV_MAX_PORT=21110
+      - FTP_PORT=21
+
+    networks:
+      - net
+  
+  ftp-client:
+    image: alpine
+    container_name: ftp-client
+    volumes:
+      - ./readme.md:/root/readme.md
+    entrypoint: sh -c "apk add --no-cache lftp && sleep infinity"
+    networks:
+      - net
+
+  inquisitor:
+    build: ./inquisitor
+    container_name: inquisitor
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      - net
+
+networks:
+  net:
+    driver: bridge
