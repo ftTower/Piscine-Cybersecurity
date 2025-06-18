@@ -1,4 +1,4 @@
-```markdown
+
 # Arachnida - Cybersecurity Piscine
 
 ## Résumé
@@ -102,4 +102,3 @@ make clean
 - Le scraping est limité au même domaine que l'URL de départ.  
 - Les métadonnées EXIF peuvent contenir des informations sensibles, soyez vigilant lors de leur manipulation.
 
-```
