@@ -21,8 +21,8 @@ services:
       lan:
         ipv4_address: 10.5.0.20
     environment:
-      FTP_USER_NAME: user
-      FTP_USER_PASS: pass
+      FTP_USER_NAME: tauer
+      FTP_USER_PASS: 1234
       FTP_USER_HOME: /home/user
     volumes:
       - ftpdata:/home/user
