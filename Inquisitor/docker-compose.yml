@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   attacker:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: inquisitor
     networks:
       lan:
@@ -13,12 +15,12 @@ services:
     tty: true
 
   victim:
-    image: dperson/ftp
+    image: stilliard/pure-ftpd
     container_name: victim
     networks:
       lan:
         ipv4_address: 10.5.0.20
-    command: ["-u", "user;pass"]
+    command: ["/bin/sh", "-c", "pure-ftpd -u 1 -E -j -R -P 10.5.0.20 -p 30000:30009"]
     stdin_open: true
     tty: true
 

@@ -6,4 +6,4 @@ RUN apt-get update && apt-get install -y tcpdump iproute2 libpcap-dev net-tools 
 WORKDIR /app
 COPY inquisitor.py /app/inquisitor.py
 
-CMD ["python3", "inquisitor.py"]
+CMD ["tail", "-f", "/dev/null"]
