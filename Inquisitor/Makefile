@@ -3,13 +3,13 @@
 all: build up
 
 build:
-	docker-compose build
+	docker-compose up -d --build
 
 up:
 	docker-compose up -d
 
 down:
-	docker-compose down
+	docker-compose down -v
 
 exec:
 	docker exec -it inquisitor /bin/bash

@@ -20,12 +20,20 @@ services:
     networks:
       lan:
         ipv4_address: 10.5.0.20
+    environment:
+      FTP_USER_NAME: user
+      FTP_USER_PASS: pass
+      FTP_USER_HOME: /home/user
+    volumes:
+      - ftpdata:/home/user
     command: ["/bin/sh", "-c", "pure-ftpd -u 1 -E -j -R -P 10.5.0.20 -p 30000:30009"]
     stdin_open: true
     tty: true
 
   ftp-client:
-    image: alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.ftp-client
     container_name: ftp-client
     networks:
       lan:
@@ -38,3 +46,6 @@ networks:
     ipam:
       config:
         - subnet: 10.5.0.0/24
+
+volumes:
+  ftpdata:
