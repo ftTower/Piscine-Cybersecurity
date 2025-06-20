@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  attacker:
+    build: .
+    container_name: inquisitor
+    networks:
+      lan:
+        ipv4_address: 10.5.0.10
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    tty: true
+
+  victim:
+    image: dperson/ftp
+    container_name: victim
+    networks:
+      lan:
+        ipv4_address: 10.5.0.20
+    command: ["-u", "user;pass"]
+    stdin_open: true
+    tty: true
+
+  ftp-client:
+    image: alpine
+    container_name: ftp-client
+    networks:
+      lan:
+        ipv4_address: 10.5.0.30
+    tty: true
+
+networks:
+  lan:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/24
