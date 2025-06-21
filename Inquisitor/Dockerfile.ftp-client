@@ -6,4 +6,4 @@ RUN echo "test depuis le client" > /test.txt
 
 COPY ftp-script.txt /ftp-script.txt
 
-CMD ftp -n -v 10.5.0.20 < ftp-script.txt && sh
+CMD ["/bin/sh", "-c", "ftp -n -v 10.5.0.20 < /ftp-script.txt && exec sh"]

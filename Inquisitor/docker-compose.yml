@@ -22,10 +22,10 @@ services:
         ipv4_address: 10.5.0.20
     environment:
       FTP_USER_NAME: tauer
-      FTP_USER_PASS: 1234
-      FTP_USER_HOME: /home/user
+      FTP_USER_PASS: pass
+      FTP_USER_HOME: /home/ftpusers/tauer
     volumes:
-      - ftpdata:/home/user
+      - ftpdata:/home/ftpusers/tauer
     command: ["/bin/sh", "-c", "pure-ftpd -u 1 -E -j -R -P 10.5.0.20 -p 30000:30009"]
     stdin_open: true
     tty: true

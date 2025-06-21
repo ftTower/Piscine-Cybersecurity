@@ -1,4 +1,4 @@
-user user pass
+user tauer pass
 put /test.txt
 ls
 bye
