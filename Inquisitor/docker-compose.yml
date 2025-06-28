@@ -15,20 +15,29 @@ services:
     tty: true
 
   victim:
-    image: stilliard/pure-ftpd
-    container_name: victim
-    networks:
-      lan:
-        ipv4_address: 10.5.0.20
-    environment:
-      FTP_USER_NAME: tauer
-      FTP_USER_PASS: pass
-      FTP_USER_HOME: /home/ftpusers/tauer
-    volumes:
-      - ftpdata:/home/ftpusers/tauer
-    command: ["/bin/sh", "-c", "pure-ftpd -u 1 -E -j -R -P 10.5.0.20 -p 30000:30009"]
-    stdin_open: true
-    tty: true
+      # image: stilliard/pure-ftpd # REMOVE this line
+      build:
+        context: .
+        dockerfile: Dockerfile.victim # ADD this line to use your custom Dockerfile
+      container_name: victim
+      networks:
+        lan:
+          ipv4_address: 10.5.0.20
+      environment:
+        FTP_USER_NAME: tauer
+        FTP_USER_PASS: eheh
+        FTP_USER_HOME: /home/ftpusers/tauer
+      volumes:
+        - ftpdata:/home/ftpusers/tauer
+      command: ["pure-ftpd", "-A", "-P", "10.5.0.20", "-p", "30000:30009", "-j", "-R"]
+      stdin_open: true
+      tty: true
+      healthcheck:
+        test: ["CMD", "nc", "-zv", "10.5.0.20", "21"] # CHANGE to use nc
+        interval: 5s
+        timeout: 3s
+        retries: 5
+        start_period: 10s
 
   ftp-client:
     build:
@@ -39,6 +48,10 @@ services:
       lan:
         ipv4_address: 10.5.0.30
     tty: true
+    # --- ADD THIS DEPENDS_ON BLOCK ---
+    depends_on:
+      victim:
+        condition: service_healthy
 
 networks:
   lan:

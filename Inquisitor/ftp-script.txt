@@ -1,4 +1,4 @@
-user tauer pass
+open tauer:eheh@10.5.0.20
 put /test.txt
 ls
 bye
