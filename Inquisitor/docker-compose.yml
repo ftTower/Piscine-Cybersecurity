@@ -15,7 +15,7 @@ services:
       - inquisitor_net
 
   inquisitor:
-    build: ./your_inquisitor_program # Path to your inquisitor Dockerfile/code
+    build: ./inquisitor.py # Path to your inquisitor Dockerfile/code
     container_name: inquisitor
     cap_add:
       - NET_ADMIN
@@ -23,7 +23,7 @@ services:
     networks:
       - inquisitor_net
     volumes:
-      - ./your_inquisitor_program:/app # Mount your inquisitor code into the container
+      - ./inquisitor.py:/app # Mount your inquisitor code into the container
     # --- MODIFICATION START ---
     # Override the default command to keep the container running but idle
     command: tail -f /dev/null
