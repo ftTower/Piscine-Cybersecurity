@@ -1,5 +1,5 @@
 # inquisitor_project/your_inquisitor_program/Dockerfile
-FROM python:3.9-slim-buster # Or any other suitable Python base image
+FROM python:3.9-slim-bookworm # Updated slim variant with fewer vulnerabilities
 
 # Install libpcap (required for sniffing even with Python libraries like scapy)
 # And install python packages if needed (e.g. scapy)
