@@ -37,3 +37,7 @@ services:
       GATEWAY_IP: "172.18.0.1" # Example: Get this from docker network inspect inquisitor_net
       # If your inquisitor program can read from environment variables, you can use these.
       # Otherwise, you'll type the IPs manually when you execute your program.
+
+networks:
+  inquisitor_net:
+    driver: bridge
