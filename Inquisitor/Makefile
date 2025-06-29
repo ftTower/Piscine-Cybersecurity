@@ -11,7 +11,7 @@ down:
 	docker-compose down
 
 client:
-	python3 ftp_client_test.py
+	python3 ftp_client.py
 
 clean:
 	rm -rf ./data/*
