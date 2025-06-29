@@ -24,7 +24,7 @@ def create_test_files():
 
         print(f"Creating {TEST_FILE_DOWNLOAD} on server (simulated)...")
         # Ensure the data directory exists for the server
-        os.makedirs("./data", exist_ok=True)
+        os.makedirs("./ftp_data", exist_ok=True)
         download_file_path_on_host = os.path.join("./data", TEST_FILE_DOWNLOAD)
         with open(download_file_path_on_host, "w") as f:
             f.write("This file was already on the FTP server for download testing.\n")
