@@ -6,6 +6,12 @@ RUN apt-get update && \
     apt-get install -y vsftpd openssl && \
     rm -rf /var/lib/apt/lists/*
 
+# --- ADD THESE LINES FOR secure_chroot_dir ---
+RUN mkdir -p /var/run/vsftpd/empty && \
+    chown root:root /var/run/vsftpd/empty && \
+    chmod 755 /var/run/vsftpd/empty
+# --- END ADDITION ---
+
 # Create a user for FTP
 RUN useradd -m -s /bin/bash ftpuser
 
