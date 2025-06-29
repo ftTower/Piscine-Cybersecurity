@@ -8,29 +8,32 @@ services:
     ports:
       - "21:21"
       - "20:20"
-      - "21000-21010:21000-21010" # Passive mode port range
+      - "21000-21010:21000-21010"
     volumes:
-      - ./data:/home/ftpuser/ftp_data # Mount a local directory for FTP files
+      - ./data:/home/ftpuser/ftp_data
     networks:
       - inquisitor_net
 
-  # You can add your inquisitor container here if it's Dockerized
-  # inquisitor:
-  #   build: ./your_inquisitor_program
-  #   container_name: inquisitor
-  #   cap_add:
-  #     - NET_ADMIN # Required for raw sockets and network manipulation
-  #     - NET_RAW
-  #   network_mode: service:ftp_server # This makes it share the network stack with ftp_server
-  #   # OR
-  #   # networks:
-  #   #   - inquisitor_net
-  #   # And then you'd need to configure it to target ftp_server's IP within the network
-  #   # environment:
-  #   #   FTP_SERVER_IP: ftp_server
-  #   #   ... your other parameters
-  #   command: python /app/inquisitor.py -h ftp_server -g <gateway_ip> -t <target_ip> -i <interface>
-
-networks:
-  inquisitor_net:
-    driver: bridge
+  inquisitor:
+    build: ./your_inquisitor_program # Path to your inquisitor Dockerfile/code
+    container_name: inquisitor
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      - inquisitor_net
+    volumes:
+      - ./your_inquisitor_program:/app # Mount your inquisitor code into the container
+    # --- MODIFICATION START ---
+    # Override the default command to keep the container running but idle
+    command: tail -f /dev/null
+    # --- MODIFICATION END ---
+    # If you need environment variables to be set when you manually run your program:
+    environment:
+      # These won't be used by the 'command' above, but will be set
+      # as environment variables for any process you launch manually in the container.
+      # You'll still need to get the correct IPs for your specific setup.
+      FTP_SERVER_IP: "172.18.0.2" # Example: Get this from docker inspect ftp_server
+      GATEWAY_IP: "172.18.0.1" # Example: Get this from docker network inspect inquisitor_net
+      # If your inquisitor program can read from environment variables, you can use these.
+      # Otherwise, you'll type the IPs manually when you execute your program.
