@@ -1,64 +1,36 @@
+# docker-compose.yml
 version: '3.8'
 
 services:
-  attacker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: inquisitor
+  ftp_server:
+    build: .
+    container_name: ftp_server
+    ports:
+      - "21:21"
+      - "20:20"
+      - "21000-21010:21000-21010" # Passive mode port range
+    volumes:
+      - ./data:/home/ftpuser/ftp_data # Mount a local directory for FTP files
     networks:
-      lan:
-        ipv4_address: 10.5.0.10
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    tty: true
+      - inquisitor_net
 
-  victim:
-      # image: stilliard/pure-ftpd # REMOVE this line
-      build:
-        context: .
-        dockerfile: Dockerfile.victim # ADD this line to use your custom Dockerfile
-      container_name: victim
-      networks:
-        lan:
-          ipv4_address: 10.5.0.20
-      environment:
-        FTP_USER_NAME: tauer
-        FTP_USER_PASS: eheh
-        FTP_USER_HOME: /home/ftpusers/tauer
-      volumes:
-        - ftpdata:/home/ftpusers/tauer
-      command: ["pure-ftpd", "-A", "-P", "10.5.0.20", "-p", "30000:30009", "-j", "-R"]
-      stdin_open: true
-      tty: true
-      healthcheck:
-        test: ["CMD", "nc", "-zv", "10.5.0.20", "21"] # CHANGE to use nc
-        interval: 5s
-        timeout: 3s
-        retries: 5
-        start_period: 10s
-
-  ftp-client:
-    build:
-      context: .
-      dockerfile: Dockerfile.ftp-client
-    container_name: ftp-client
-    networks:
-      lan:
-        ipv4_address: 10.5.0.30
-    tty: true
-    # --- ADD THIS DEPENDS_ON BLOCK ---
-    depends_on:
-      victim:
-        condition: service_healthy
+  # You can add your inquisitor container here if it's Dockerized
+  # inquisitor:
+  #   build: ./your_inquisitor_program
+  #   container_name: inquisitor
+  #   cap_add:
+  #     - NET_ADMIN # Required for raw sockets and network manipulation
+  #     - NET_RAW
+  #   network_mode: service:ftp_server # This makes it share the network stack with ftp_server
+  #   # OR
+  #   # networks:
+  #   #   - inquisitor_net
+  #   # And then you'd need to configure it to target ftp_server's IP within the network
+  #   # environment:
+  #   #   FTP_SERVER_IP: ftp_server
+  #   #   ... your other parameters
+  #   command: python /app/inquisitor.py -h ftp_server -g <gateway_ip> -t <target_ip> -i <interface>
 
 networks:
-  lan:
+  inquisitor_net:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 10.5.0.0/24
-
-volumes:
-  ftpdata:

@@ -1,15 +1,18 @@
-.PHONY: all build up down exec
-
-all: build up
+# Makefile
+.PHONY: build up down client clean
 
 build:
-	docker-compose up -d --build
+	docker-compose build
 
 up:
 	docker-compose up -d
 
 down:
-	docker-compose down -v
+	docker-compose down
 
-exec:
-	docker exec -it inquisitor /bin/bash
+client:
+	python3 ftp_client_test.py
+
+clean:
+	rm -rf ./data/*
+	docker-compose down -v --rmi all
