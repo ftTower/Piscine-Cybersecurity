@@ -3,19 +3,37 @@ import ftplib
 import os
 import time
 
-# ... (FTP_HOST, FTP_PORT, FTP_USER, FTP_PASS, etc. remain the same) ...
+FTP_HOST = "localhost" 
+FTP_PORT = 21
+FTP_USER = "ftpuser"
+FTP_PASS = "ftppassword"
+TEST_FILE_UPLOAD = "upload_test.txt"
+TEST_FILE_DOWNLOAD = "download_test.txt"
 
 def create_test_files():
-    print(f"Creating {TEST_FILE_UPLOAD}...")
-    with open(TEST_FILE_UPLOAD, "w") as f:
-        f.write("This is a test file to upload.\n")
-        f.write("It contains multiple lines for observation.\n")
-    print(f"Creating {TEST_FILE_DOWNLOAD} on server (simulated)...")
-    # This file needs to be in the root of the chroot directory for the FTP user
-    # which corresponds to the ./data folder on the host.
-    with open("./data/" + TEST_FILE_DOWNLOAD, "w") as f: # This line is already correct for host path
-        f.write("This file was already on the FTP server for download testing.\n")
+    # Set a more permissive umask temporarily for file creation
+    original_umask = os.umask(0o000) # 0o000 allows all permissions (rwxrwxrwx) by default
 
+    try:
+        print(f"Creating {TEST_FILE_UPLOAD}...")
+        with open(TEST_FILE_UPLOAD, "w") as f:
+            f.write("This is a test file to upload.\n")
+            f.write("It contains multiple lines for observation.\n")
+        # Ensure the file is readable by everyone if umask didn't fully apply
+        os.chmod(TEST_FILE_UPLOAD, 0o666) # rw-rw-rw-
+
+        print(f"Creating {TEST_FILE_DOWNLOAD} on server (simulated)...")
+        # Ensure the data directory exists for the server
+        os.makedirs("./data", exist_ok=True)
+        download_file_path_on_host = os.path.join("./data", TEST_FILE_DOWNLOAD)
+        with open(download_file_path_on_host, "w") as f:
+            f.write("This file was already on the FTP server for download testing.\n")
+        # Set permissions for the downloaded file on the host, so it's readable in the container
+        os.chmod(download_file_path_on_host, 0o666) # rw-rw-rw-
+
+    finally:
+        os.umask(original_umask) # Restore original umask
+        
 def connect_and_transfer():
     ftp = None
     try:
@@ -25,29 +43,22 @@ def connect_and_transfer():
         ftp.login(FTP_USER, FTP_PASS)
         print("Login successful!")
 
-        # After login, the FTP user is typically in their home directory,
-        # which is also their chroot directory.
-        # Let's change to the 'ftp_data' subdirectory first.
-        # The 'ftp_data' directory exists inside the chroot because of the volume mount.
-        print("Changing current directory on FTP server to /ftp_data...")
-        ftp.cwd("ftp_data") # <--- ADD THIS LINE!
-
-        # List files on the server (now within /ftp_data)
-        print("\nFiles on server (in /ftp_data):")
+        # List files on the server
+        print("\nFiles on server:")
         ftp.dir()
 
         # Upload a file
-        print(f"\nUploading {TEST_FILE_UPLOAD} to /ftp_data...")
+        print(f"\nUploading {TEST_FILE_UPLOAD}...")
         with open(TEST_FILE_UPLOAD, "rb") as fp:
             ftp.storbinary(f"STOR {TEST_FILE_UPLOAD}", fp)
         print(f"Uploaded {TEST_FILE_UPLOAD}.")
 
         # List files again to confirm upload
-        print("\nFiles on server after upload (in /ftp_data):")
+        print("\nFiles on server after upload:")
         ftp.dir()
 
         # Download a file
-        print(f"\nDownloading {TEST_FILE_DOWNLOAD} from /ftp_data...")
+        print(f"\nDownloading {TEST_FILE_DOWNLOAD}...")
         with open(f"downloaded_{TEST_FILE_DOWNLOAD}", "wb") as fp:
             ftp.retrbinary(f"RETR {TEST_FILE_DOWNLOAD}", fp.write)
         print(f"Downloaded downloaded_{TEST_FILE_DOWNLOAD}.")
@@ -55,12 +66,12 @@ def connect_and_transfer():
         # Rename a file (for observing control channel commands)
         old_name = TEST_FILE_UPLOAD
         new_name = "renamed_test_file.txt"
-        print(f"\nRenaming {old_name} to {new_name} in /ftp_data...")
+        print(f"\nRenaming {old_name} to {new_name}...")
         ftp.rename(old_name, new_name)
         print(f"Renamed {old_name} to {new_name}.")
 
         # Delete a file (for observing control channel commands)
-        print(f"\nDeleting {new_name} from /ftp_data...")
+        print(f"\nDeleting {new_name}...")
         ftp.delete(new_name)
         print(f"Deleted {new_name}.")
 
@@ -78,14 +89,16 @@ def connect_and_transfer():
             print("FTP connection closed.")
 
 if __name__ == "__main__":
+    # Ensure the data directory exists for the server
     os.makedirs("./data", exist_ok=True)
     create_test_files()
-    time.sleep(1)
+    time.sleep(1) # Give a moment for files to be written
 
     print("\n--- Starting FTP Client Test ---")
     connect_and_transfer()
     print("--- FTP Client Test Finished ---")
 
+    # Clean up local test files
     if os.path.exists(TEST_FILE_UPLOAD):
         os.remove(TEST_FILE_UPLOAD)
     if os.path.exists(f"downloaded_{TEST_FILE_DOWNLOAD}"):
