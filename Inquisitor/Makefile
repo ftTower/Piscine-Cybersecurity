@@ -18,6 +18,7 @@ clean:
 	docker compose down -v --rmi all
 
 inspect:
+	@clear
 	@echo "\033[1;34mIP address of ftp-server:\033[0m"
 	@docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ftp_server
 	@echo "\033[1;34mMAC address of ftp-server:\033[0m"
