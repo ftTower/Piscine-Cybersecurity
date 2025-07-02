@@ -25,10 +25,7 @@ class Vaccine:
                 print(f"\t{input}")
         print()
                 
-
     
-    def identify_db():
-        pass
         
 
 def main():

@@ -10,7 +10,7 @@ clear:
 
 run: clear
 	$(PYTHON_EXEC) $(SCRIPT_PATH)$(SCRIPT) https://demo.testfire.net/login.jsp
-
+	$(PYTHON_EXEC) $(SCRIPT_PATH)$(SCRIPT) http://testphp.vulnweb.com/login.php
 clean:
 	rm -rf __pycache__
 

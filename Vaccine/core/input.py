@@ -32,17 +32,6 @@ class Input_obj:
         
         
         # self.identify_db_time_based()
-        
-    def identify_db_time_based(self):
-        options = webdriver.ChromeOptions()
-        # options.add_argument("--headless")
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=options)
-
-        driver.set_page_load_timeout(EXPECTED_DELAY + TOLERANCE + 10)
-        
-        print(f"Navigation vers : {self.url}")
-        driver.get(self.url)
     
     def identify_db(self):
         options = webdriver.ChromeOptions()
