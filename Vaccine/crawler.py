@@ -29,7 +29,9 @@ class Input_obj:
         self.db_type = None
         
         self.input_data(input_line)
-        self.identify_db()
+        
+        
+        # self.identify_db()
         
     def identify_db(self):
         options = webdriver.ChromeOptions()
@@ -37,7 +39,7 @@ class Input_obj:
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
 
-        driver.set_page_load_timeout(EXPECTED_DELAY + TOLERANCE + 10) # Increased timeout
+        driver.set_page_load_timeout(EXPECTED_DELAY + TOLERANCE + 10)
 
         try:
             print(f"Navigation vers : {self.url}")
@@ -167,18 +169,3 @@ class Crawler:
             print(f"Error finding input elements: {e}")
         finally:
             driver.quit()
-
-
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) > 1:
-        target_url = sys.argv[1]
-        crawler = Crawler(target_url)
-        found_inputs = crawler.return_inputs()
-        
-        print(f"\n[+] Found {len(found_inputs)} potential SQLI entry points!")
-        for input_obj in found_inputs:
-            print(input_obj)
-            
-    else:
-        print("Usage: python3 vaccine.py <URL>")
