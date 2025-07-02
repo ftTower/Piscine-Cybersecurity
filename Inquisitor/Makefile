@@ -18,6 +18,12 @@ clean:
 	docker compose down -v --rmi all
 
 inspect:
-	docker inspect -f '{{range .NetworkSettings.Networks.inquisitor_net.IPAddress}}{{.}}{{end}}' ftp_server
-	docker inspect -f '{{range .NetworkSettings.Networks.inquisitor_net.MacAddress}}{{.}}{{end}}' ftp_server
-	ip a
+	@clear
+	@echo "\033[1;34mIP address of ftp-server:\033[0m"
+	@docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ftp_server
+	@echo "\033[1;34mMAC address of ftp-server:\033[0m"
+	@docker inspect -f '{{range .NetworkSettings.Networks}}{{.MacAddress}}{{end}}' ftp_server
+	@echo "\033[1;34mHost network interfaces (look for eth0, eth1, enpXsY, wlan0):\033[0m"
+	@ip a
+	@echo "\033[1;34mHost MAC addresses:\033[0m"
+	@ip link | awk '/link\/ether/ {print $2}'
