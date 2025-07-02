@@ -2,7 +2,6 @@ import argparse
 
 from crawler import Crawler
 
-
 class Vaccine:
     def __init__(self, target_url, output_file, request_method):
         
@@ -10,24 +9,29 @@ class Vaccine:
         self.output_file = output_file
         self.request_method = request_method
         
-        self.run()
-        
-            
-    def run(self):
-        
-        inputs = Crawler(self.url).return_inputs()
+        self.pages = Crawler(self.url).return_pages()
         
         
         
         
-        print(f"[+] Found {len(inputs)} SQLI entry !")
-        for input in inputs:
-            print(input)   
+        
+        self.display_pages()
+
+    def display_pages(self):
+        print(f"[+] Found {len(self.pages)} pages !\n")
+        for page in self.pages:
+            print(page)
+            for input in page.inputs:
+                print(f"\t{input}")
+        print()
+                
+
     
+    def identify_db():
+        pass
         
 
 def main():
-    
     
     parser = argparse.ArgumentParser(description="Vaccine: SQL Injection Detection Tool")
     parser.add_argument("url", help="The target URL to test for SQL injection.")
@@ -44,9 +48,6 @@ def main():
 
     Vaccine(target_url, output_file, request_method)
 
-
-    
-    
 
 if __name__ == "__main__":
     main()

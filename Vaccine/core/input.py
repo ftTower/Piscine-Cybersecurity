@@ -8,7 +8,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import UnexpectedAlertPresentException, TimeoutException, NoAlertPresentException
 from webdriver_manager.chrome import ChromeDriverManager
 
-# ... (rest of your imports and PAYLOADS dictionary) ...
 
 EXPECTED_DELAY = 5
 TOLERANCE = 2
@@ -19,7 +18,7 @@ PAYLOADS = {
 }
 
 class Input_obj:
-    def __init__(self, input_line, url):
+    def __init__(self, input_line, url, usable=False):
         self.input_line = input_line
         self.url = url
         
@@ -27,15 +26,27 @@ class Input_obj:
         self.input_type = None
         
         self.db_type = None
+        self.usable = usable
         
         self.input_data(input_line)
         
         
-        # self.identify_db()
+        # self.identify_db_time_based()
         
+    def identify_db_time_based(self):
+        options = webdriver.ChromeOptions()
+        # options.add_argument("--headless")
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
+
+        driver.set_page_load_timeout(EXPECTED_DELAY + TOLERANCE + 10)
+        
+        print(f"Navigation vers : {self.url}")
+        driver.get(self.url)
+    
     def identify_db(self):
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless")
+        # options.add_argument("--headless")
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
 
@@ -79,6 +90,11 @@ class Input_obj:
                         WebDriverWait(driver, 2).until(EC.alert_is_present())
                         alert = driver.switch_to.alert
                         print(f"Alert Text (after payload): {alert.text}")
+                        if "You must enter a valid password" in alert.text:
+                            pass_field = wait.until(EC.presence_of_element_located((By.NAME, "passw")))
+                            pass_field.send_keys("pass")
+                            input_field.send_keys(payload)
+                            
                         alert.accept()
                         
                         response_time = time.time() - start_time 
@@ -128,44 +144,23 @@ class Input_obj:
         input_tag = soup.find('input')
         if input_tag:
             self.name = input_tag.get('name')
-            self.input_type = input_tag.get('type')
+            self.type = input_tag.get('type')
             
     def __str__(self):
-        db_info = f" | DB: [\033[32m{self.db_type}\033[0m]" if self.db_type else ""
-        return f"\t\033[96m{self.url}\033[0m |\tname[\033[31m{self.name}\033[0m]\t:\ttype[\033[93m{self.input_type}\033[0m]{db_info}" 
+        COLOR_RESET = "\033[0m"
+        COLOR_TYPE = "\033[34m"      # Blue
+        COLOR_NAME = "\033[36m"      # Cyan
+        COLOR_DB = "\033[33m"        # Yellow
+        COLOR_GREEN = "\033[38;5;46m"
+        COLOR_RED = "\033[38;5;160m"
 
-class Crawler:
-    def __init__(self, url):
-        self.inputs = []
-        self.url = url
-        self.find_input()
-        
-    def return_inputs(self):
-        return self.inputs    
-    
-    def parse_input(self, input_elements):
-        if input_elements:
-            for input_html in input_elements: 
-                if '<input type="text"' in input_html or '<input type="password"' in input_html:
-                    self.inputs.append(Input_obj(input_html, self.url))
+        type_str = f"{COLOR_TYPE}{self.input_type or self.type or 'UnknownType'}{COLOR_RESET}"
+        name_str = f"{COLOR_NAME}{self.name or 'UnknownName'}{COLOR_RESET}"
+        db_str = f"{COLOR_DB}{self.db_type or 'UnknownDB'}{COLOR_RESET}"
+
+        if self.usable:
+            usable_str = f"{COLOR_GREEN}●{COLOR_RESET}"
         else:
-            print("No input elements found.")
-    
-    def find_input(self):
-        options = webdriver.ChromeOptions()
-        options.add_argument("--headless")
-        
-        service = Service(ChromeDriverManager().install())
-        
-        driver = webdriver.Chrome(service=service, options=options)
-        
-        try:
-            driver.get(self.url)
-            time.sleep(2)
-            
-            input_elements = [element.get_attribute('outerHTML') for element in driver.find_elements(By.TAG_NAME, "input")]
-            self.parse_input(input_elements)
-        except Exception as e:
-            print(f"Error finding input elements: {e}")
-        finally:
-            driver.quit()
+            usable_str = f"{COLOR_RED}●{COLOR_RESET}"
+
+        return f"{usable_str} {type_str:<20}{name_str:<25}{db_str:<20}"

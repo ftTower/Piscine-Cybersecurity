@@ -1,6 +1,7 @@
 
 PYTHON_EXEC = python3
 SCRIPT = vaccine.py
+SCRIPT_PATH = ./core/
 
 all: run
 
@@ -8,7 +9,7 @@ clear:
 	@clear
 
 run: clear
-	$(PYTHON_EXEC) $(SCRIPT) https://demo.testfire.net/login.jsp
+	$(PYTHON_EXEC) $(SCRIPT_PATH)$(SCRIPT) https://demo.testfire.net/login.jsp
 
 clean:
 	rm -rf __pycache__
