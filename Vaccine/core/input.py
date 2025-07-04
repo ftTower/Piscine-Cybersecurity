@@ -35,7 +35,6 @@ class Input_obj:
     
     def identify_db(self):
         options = webdriver.ChromeOptions()
-        # options.add_argument("--headless")
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
 
