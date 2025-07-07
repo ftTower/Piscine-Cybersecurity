@@ -53,7 +53,7 @@ def simple_crawler(start_url, max_pages=5, domain_whitelist=None):
         parsed_url = urlparse(start_url)
         domain_whitelist = {parsed_url.netloc}
         
-    print(f"{colored('🔴 Crawling:  ', RED, styles=BOLD)}{colored(start_url, YELLOW, styles=BLINK)}")
+    print(f"{colored('🔴 Crawling:  ', RED, styles=BOLD)}{colored(start_url, CYAN, styles=BLINK)}")
     
     
     while urls_to_visit and len(visited_url) < max_pages:

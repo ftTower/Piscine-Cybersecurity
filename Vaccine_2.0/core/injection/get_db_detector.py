@@ -28,17 +28,13 @@ error_based_db_payloads = {
     }
 
 def identify_db_get(scrapped_data):
-    print(f"🔴 {colored('Detection:', RED, styles=BOLD)} {colored('GET Method', MAGENTA, styles=BOLD)}")
+    print(f"🔴 {colored('Detection:', RED, styles=BOLD)} {colored('GET Method', CYAN, styles=BOLD)}")
     success = False
     identified_db = None    
     vuln_links = set()
     
-    mysql = postgresql = sqlserv = oracle = sqlite = 0
-    
-    
-    
     for url in scrapped_data:
-        success, identified_db = check_sql_injection_get(url)
+        success, identified_db, detection = check_sql_injection_get(url)
         
         if success:
             print(f"{colored('🟡 Detection:', YELLOW, styles=BOLD)} {colored(url, GREEN, styles=BLINK)} > {colored(identified_db, MAGENTA, styles=BOLD)}")
@@ -48,9 +44,9 @@ def identify_db_get(scrapped_data):
         time.sleep(1)
     
     print(erase_lines(len(scrapped_data) + 3))
-    for links in vuln_links:
-        print(f"{colored('🟢 Detection:', WHITE, styles=BOLD)} {colored(url, GREEN, styles=BLINK)} > {colored(identified_db, MAGENTA, styles=BOLD)}")
-    
+    for url in vuln_links:
+        print(f"{colored('🟢 Detection:', WHITE, styles=BOLD)} {colored(url, GREEN, styles=BLINK)} > {colored(identified_db, MAGENTA, styles=BOLD)} - {colored(detection, CYAN, styles=BOLD)}")
+    print()
     return success, identified_db, vuln_links
 
 def check_sql_injection_get(url):
@@ -58,43 +54,62 @@ def check_sql_injection_get(url):
     identify_db = None
     
     parsed_url = urlparse(url)
-    base_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
     query_params = parse_qs(parsed_url.query)
     
-    original_response_content = None
-    try :
+    try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
-        original_response_content = response.text
-        
     except requests.exceptions.RequestException as e:
         print(f"Erreur lors de la requête originale : {e}")
-        return success, identify_db
-    
-    
+        return success, identify_db, None
+
+    detection = None
     for param, values in query_params.items():
         original_value = values[0]
         
-        #! DETECTION ERREUR MESSAGE
-        for db_type, payloads in error_based_db_payloads.items():
-            for payload in payloads:
-                temp_params = query_params.copy()
-                temp_params[param] = [original_value + payload]
-                test_url = urlunparse(parsed_url._replace(query=urlencode(temp_params, doseq=True)))
+        success, identify_db, detection = time_based_injection_get(query_params, param, original_value, parsed_url)
+        if not success:
+            success, identify_db, detection = error_based_injection_get(query_params, param, original_value, parsed_url)
+        if success:
+            break
 
-                try:
-                    test_response = requests.get(test_url, timeout=10)
-                    response_text_lower = test_response.text.lower()
-                    
-                    for signature in db_error_signatures.get(db_type, []):
-                        if signature in response_text_lower:
-                            return True, db_type
-                except requests.exceptions.RequestException as e:
-                    pass
-                except Exception as e:
-                    print(f"    Une erreur inattendue s'est produite: {e}")
+    return success, identify_db, detection
 
+def error_based_injection_get(query_params, param, original_value, parsed_url):
+    for db_type, payloads in error_based_db_payloads.items():
+        for payload in payloads:
+            temp_params = query_params.copy()
+            temp_params[param] = [original_value + payload]
+            test_url = urlunparse(parsed_url._replace(query=urlencode(temp_params, doseq=True)))
 
-    
-    return success, identify_db
-    
+            try:
+                response = requests.get(test_url, timeout=10)
+                response_text_lower = response.text.lower()
+                
+                for signature in db_error_signatures.get(db_type, []):
+                    if signature in response_text_lower:
+                        return True, db_type, "error-based"
+            except requests.exceptions.RequestException:
+                pass
+            except Exception as e:
+                print(f"    Une erreur inattendue s'est produite: {e}")
+    return False, None, None
+
+def time_based_injection_get(query_params, param, original_value, parsed_url):
+    for db_type, payload in time_based_payloads.items():
+        temp_params = query_params.copy()
+        temp_params[param] = [original_value + payload]
+        test_url = urlunparse(parsed_url._replace(query=urlencode(temp_params, doseq=True)))
+
+        try:
+            start_time = time.time()
+            requests.get(test_url, timeout=15)
+            end_time = time.time()
+            
+            if (end_time - start_time) > 4:
+                return True, db_type, "time-based"
+        except requests.exceptions.RequestException as e:
+            pass
+        except Exception as e:
+            print(f"    Une erreur inattendue s'est produite: {e}")
+    return False, None, None
