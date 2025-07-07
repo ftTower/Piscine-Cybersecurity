@@ -1,27 +1,32 @@
 
-PYTHON_EXEC = python3
-SCRIPT = vaccine.py
-SCRIPT_PATH = ./core/
+.SILENT:
 
-all: run
+LAB_PATH = lab
 
 clear:
-	@clear
+	clear
+
+labs:
+	git clone https://github.com/yuyudhn/SQLi-Labs-Docker.git $(LAB_PATH)/SQLi-Labs-Docker || true
+	rm $(LAB_PATH)/SQLi-Labs-Docker/docker-compose.yml
+	cp $(LAB_PATH)/docker-compose.yml $(LAB_PATH)/SQLi-Labs-Docker/
+	cd $(LAB_PATH)/SQLi-Labs-Docker && docker-compose up --build -d
+
+clean_labs:
+	if [ -d "$(LAB_PATH)/SQLi-Labs-Docker" ]; then \
+		cd $(LAB_PATH)/SQLi-Labs-Docker && docker-compose down; \
+		cd ../../ && rm -rf $(LAB_PATH)/SQLi-Labs-Docker; \
+	fi
+
+clean:
+	find . -name "*.pyc" -delete
+	find . -name "__pycache__" -type d -exec rm -rf {} +
 
 run: clear
-	$(PYTHON_EXEC) $(SCRIPT_PATH)$(SCRIPT) https://demo.testfire.net/login.jsp
-	$(PYTHON_EXEC) $(SCRIPT_PATH)$(SCRIPT) http://testphp.vulnweb.com/login.php
-clean:
-	rm -rf __pycache__
+	python3 ./core/main.py http://localhost:1338/
 
-victim:
-	docker run -it -p 8050:80 vulnerables/web-dvwa
-	
-re:
-	clean run
+fclean: clean clean_labs clear
+	echo "Finished cleaning bye bye"
 
-help:
-	@echo "Available targets:"
-	@echo "  run   - Execute the vaccine.py script"
-	@echo "  clean - Remove temporary files"
-	@echo "  help  - Show this help message"
+
+re : clean clean_labs labs run
