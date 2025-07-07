@@ -7,6 +7,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 
+from utils.ainsi import *
+
 def setup_driver():
     chrome_options = Options()
     
@@ -51,8 +53,8 @@ def simple_crawler(start_url, max_pages=5, domain_whitelist=None):
         parsed_url = urlparse(start_url)
         domain_whitelist = {parsed_url.netloc}
         
-    print(f"Démarrage du crawler à partir de : {start_url}")
-    # print(f"Domaines autorisés : {domain_whitelist}")
+    print(f"{colored('🔴 Crawling:  ', RED, styles=BOLD)}{colored(start_url, YELLOW, styles=BLINK)}")
+    
     
     while urls_to_visit and len(visited_url) < max_pages:
         current_url = urls_to_visit.pop(0)
@@ -60,7 +62,6 @@ def simple_crawler(start_url, max_pages=5, domain_whitelist=None):
         if current_url in visited_url:
             continue
         
-        # print(f"\nVisite de : {current_url}")
         visited_url.add(current_url)
         
         try:
@@ -72,10 +73,8 @@ def simple_crawler(start_url, max_pages=5, domain_whitelist=None):
             
             data = extract_data(driver)
             scraped_data[current_url] = data
-            # print(f"Données extraites pour {current_url}\n")
-            # print(f"Titre : {data.get('title', 'N/A')}")
-            # print(f"Paragraphes : {len(data.get('paragraphs', []))} trouvés")
-            # print(f"Liens : {len(data.get('links', []))} trouvés")
+            print(f"{colored('🟡 Crawling: ', YELLOW, styles=BOLD):<20} {colored(current_url, CYAN, styles=BOLD):<60} {colored('Title:', WHITE)} {colored(data.get('title', 'N/A'), GREEN, styles=BOLD):<40}")
+            
             
             for link_info in data.get('links', []):
                 href = link_info.get('href')
@@ -89,15 +88,23 @@ def simple_crawler(start_url, max_pages=5, domain_whitelist=None):
                         absolute_url not in urls_to_visit and \
                             absolute_url.startswith('http'):
                         urls_to_visit.append(absolute_url)
-                        # print(f"    Ajouté à la file d'attente : {absolute_url}")
                         
                 time.sleep(0.5)
-                      
+                
         except Exception as e:
             print(f"Erreur lors de la visite de {current_url}: {e}")
             scraped_data[current_url] = {'error': str(e)}
         finally:
             pass
+    
+     
+    print(erase_lines(len(scraped_data) + 3))
+    print(
+        f"{colored('🟢 Crawling: ', WHITE, styles=BOLD)} "
+        f"{colored('Found ', CYAN, styles=BOLD)}"
+        f"{colored(str(len(scraped_data)), YELLOW, styles=BOLD)} "
+        f"{colored('URLs from the initial URL.', CYAN, styles=BOLD)}\n"
+    )
         
     driver.quit()
     return scraped_data

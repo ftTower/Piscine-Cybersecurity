@@ -1,5 +1,7 @@
 # utils.py
 
+ERASE_LINES = True 
+
 # Codes de réinitialisation/reset
 RESET = "\033[0m"
 BOLD = "\033[1m"
@@ -45,6 +47,26 @@ BG_BRIGHT_BLUE = "\033[104m"
 BG_BRIGHT_MAGENTA = "\033[105m"
 BG_BRIGHT_CYAN = "\033[106m"
 BG_BRIGHT_WHITE = "\033[107m"
+# Efface la ligne courante
+ERASE_LINE = "\033[2K"
+# Efface de la position du curseur jusqu'au début de la ligne
+ERASE_LINE_START = "\033[1K"
+# Efface de la position du curseur jusqu'à la fin de la ligne
+ERASE_LINE_END = "\033[0K"
+# Efface l'écran depuis le curseur jusqu'en haut
+ERASE_SCREEN_UP = "\033[1J"
+# Efface l'écran depuis le curseur jusqu'en bas
+ERASE_SCREEN_DOWN = "\033[0J"
+
+def erase_lines(n=1):
+    seq = ""
+    if ERASE_LINES == False:
+        return seq
+    for i in range(n):
+        seq += ERASE_LINE
+        if i < n - 1:
+            seq += "\033[1A"
+    return seq
 
 def colored(text, foreground=None, background=None, styles=None):
     codes = []

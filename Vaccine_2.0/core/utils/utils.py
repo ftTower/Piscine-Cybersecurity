@@ -25,4 +25,16 @@ def init():
           + f"  {colored(request_method, RED, styles=BOLD)}\n")
     
     return target_url, output_file, request_method
+
+
+def write_scrapped_data(scrapped_data, output_file):
+    import json
+    import os
+    data_folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/")
+    os.makedirs(data_folder_path, exist_ok=True)
+    
+    path = data_folder_path + output_file
+    with open(path, "w") as f:
+        f.write(json.dumps(scrapped_data, indent=4, ensure_ascii=False))
+
     
