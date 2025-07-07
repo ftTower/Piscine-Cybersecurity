@@ -23,7 +23,7 @@ clean:
 	find . -name "__pycache__" -type d -exec rm -rf {} +
 
 run: clear
-	python3 ./core/main.py http://localhost:1338/
+	python3 ./core/vaccine.py http://localhost:1338/
 
 fclean: clean clean_labs clear
 	echo "Finished cleaning bye bye"

@@ -5,7 +5,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
+# from selenium.webdriver.chrome.service import Service
 
 from utils.ainsi import *
 
@@ -92,7 +92,7 @@ def simple_crawler(start_url, max_pages=5, domain_whitelist=None):
                 time.sleep(0.5)
                 
         except Exception as e:
-            print(f"Erreur lors de la visite de {current_url}: {e}")
+            print(f"Erreur lors de la visite de {current_url}")
             scraped_data[current_url] = {'error': str(e)}
         finally:
             pass
@@ -106,5 +106,5 @@ def simple_crawler(start_url, max_pages=5, domain_whitelist=None):
         f"{colored('URLs from the initial URL.', CYAN, styles=BOLD)}\n"
     )
         
-    driver.quit()
+    driver.quit()    
     return scraped_data

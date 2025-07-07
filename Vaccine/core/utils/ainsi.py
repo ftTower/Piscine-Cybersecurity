@@ -70,6 +70,8 @@ def erase_lines(n=1):
 
 def colored(text, foreground=None, background=None, styles=None):
     codes = []
+    if text == None:
+        return codes
     if foreground:
         codes.append(foreground)
     if background:

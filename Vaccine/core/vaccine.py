@@ -12,6 +12,8 @@ from injection.post_inject import *
 def main():
     target_url, output_file, request_method = init()
     scrapped_data = simple_crawler(target_url)
+    
+
 
     write_scrapped_data(scrapped_data, output_file)
 
