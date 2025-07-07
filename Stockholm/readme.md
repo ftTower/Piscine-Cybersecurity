@@ -1,5 +1,7 @@
 # Stockholm Ransomware Tool
 
+![Stockholm](URL_of_your_image)
+
 ## Description
 Stockholm is a Python-based ransomware simulation tool designed for educational and cybersecurity training purposes. It encrypts files within a specified directory and provides functionality to decrypt them using a generated or provided key. The tool includes options for silent operation, version display, and help documentation.
 
