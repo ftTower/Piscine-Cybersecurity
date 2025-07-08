@@ -24,6 +24,8 @@ Run the script with the following options:
 
 ### Example Commands
 
+> **Tip:** You can modify the target folder for encryption or decryption by changing the directory path in the script. In a real-world scenario, ransomware typically targets sensitive data or the user's home directory.
+![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/folder.png)
 
 1. **Encrypt Files**:
     ```bash
