@@ -1,6 +1,5 @@
 # Stockholm Ransomware Tool
 
-![Stockholm](URL_of_your_image)
 
 ## Description
 Stockholm is a Python-based ransomware simulation tool designed for educational and cybersecurity training purposes. It encrypts files within a specified directory and provides functionality to decrypt them using a generated or provided key. The tool includes options for silent operation, version display, and help documentation.
@@ -15,6 +14,8 @@ Stockholm is a Python-based ransomware simulation tool designed for educational 
 ## Usage
 Run the script with the following options:
 
+![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/need_help%3F.png)
+
 ### Options
 - `--help` or `--h`: Display the help menu with usage instructions.
 - `--version` or `--v`: Show the current version of the tool and system information.
@@ -22,15 +23,24 @@ Run the script with the following options:
 - `--silent` or `--s`: Suppress output to the terminal.
 
 ### Example Commands
+
+
 1. **Encrypt Files**:
     ```bash
     python3 stockholm.py
     ```
+![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/encryption.png)
+
+![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/files_encrypted.png)
+
 
 2. **Decrypt Files**:
     ```bash
     python3 stockholm.py --reverse <decryption_key>
     ```
+![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/reverse.png)
+
+![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/files_content.png)
 
 3. **Display Help**:
     ```bash
