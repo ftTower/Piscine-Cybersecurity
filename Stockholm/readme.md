@@ -40,7 +40,7 @@ Run the script with the following options:
     ```
 ![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/reverse.png)
 
-> **Note:** The `--reverse` option is included for educational and security training purposes. It uses the `filekey.key` generated and stored during encryption. In a real ransomware attack, the decryption key would typically be deleted or withheld, making recovery without the key impossible.
+> **Note:** The `make reverse` option is included for educational and security training purposes. It uses the `filekey.key` generated and stored during encryption. In a real ransomware attack, the decryption key would typically be deleted or withheld, making recovery without the key impossible.
 
 ![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/files_content.png)
 
