@@ -19,7 +19,7 @@ Run the script with the following options:
 ### Options
 - `--help` or `--h`: Display the help menu with usage instructions.
 - `--version` or `--v`: Show the current version of the tool and system information.
-- `--reverse` or `--r <key>`: Reverse the encryption process using the provided decryption key.
+- `--r <key>`: Reverse the encryption process using the provided decryption key.
 - `--silent` or `--s`: Suppress output to the terminal.
 
 ### Example Commands
@@ -39,6 +39,8 @@ Run the script with the following options:
     python3 stockholm.py --reverse <decryption_key>
     ```
 ![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/reverse.png)
+
+> **Note:** The `--reverse` option is included for educational and security training purposes. It uses the `filekey.key` generated and stored during encryption. In a real ransomware attack, the decryption key would typically be deleted or withheld, making recovery without the key impossible.
 
 ![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/files_content.png)
 
