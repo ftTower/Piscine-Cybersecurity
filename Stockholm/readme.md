@@ -14,7 +14,7 @@ Stockholm is a Python-based ransomware simulation tool designed for educational 
 ## Usage
 Run the script with the following options:
 
-![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/need_help%3F.png)
+![Stockholm](https://github.com/ftTower/ftTower/blob/main/assets/Stockholm/need_help%3F.png)
 
 ### Options
 - `--help` or `--h`: Display the help menu with usage instructions.
@@ -25,26 +25,26 @@ Run the script with the following options:
 ### Example Commands
 
 > **Tip:** You can modify the target folder for encryption or decryption by changing the directory path in the script. In a real-world scenario, ransomware typically targets sensitive data or the user's home directory.
-![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/folder.png)
+![Stockholm](https://github.com/ftTower/ftTower/blob/main/assets/Stockholm/folder.png)
 
 1. **Encrypt Files**:
     ```bash
     python3 stockholm.py
     ```
-![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/encryption.png)
+![Stockholm](https://github.com/ftTower/ftTower/blob/main/assets/Stockholm/encryption.png)
 
-![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/files_encrypted.png)
+![Stockholm](https://github.com/ftTower/ftTower/blob/main/assets/Stockholm/files_encrypted.png)
 
 
 2. **Decrypt Files**:
     ```bash
     python3 stockholm.py --reverse <decryption_key>
     ```
-![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/reverse.png)
+![Stockholm](https://github.com/ftTower/ftTower/blob/main/assets/Stockholm/reverse.png)
 
 > **Note:** The `make reverse` option is included for educational and security training purposes. It uses the `filekey.key` generated and stored during encryption. In a real ransomware attack, the decryption key would typically be deleted or withheld, making recovery without the key impossible.
 
-![Stockholm](https://github.com/ftTower/Piscine-Cybersecurity/blob/main/.assets/Stockholm/files_content.png)
+![Stockholm](https://github.com/ftTower/ftTower/blob/main/assets/Stockholm/files_content.png)
 
 3. **Display Help**:
     ```bash
