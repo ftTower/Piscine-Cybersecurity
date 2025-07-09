@@ -18,17 +18,14 @@ def main():
     write_scrapped_data(scrapped_data, output_file)
 
     if "get" in request_method.lower():
-        success, db_type, vuln_links = identify_db_get(scrapped_data)
-        get_injection_process(success, db_type, vuln_links)
+        success, db_type, vuln_links, params = identify_db_get(scrapped_data)
+        Injector(success, db_type, vuln_links, params)        
+            
     elif "post" in request_method.lower():
         pass
     else:
         print("Wrong method")
         
-    
-    
-        
-
     
 if __name__ == "__main__":
     main()

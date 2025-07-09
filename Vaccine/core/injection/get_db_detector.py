@@ -34,7 +34,7 @@ def identify_db_get(scrapped_data):
     vuln_links = set()
     
     for url in scrapped_data:
-        success, identified_db, detection = check_sql_injection_get(url)
+        success, identified_db, detection, param = check_sql_injection_get(url)
         
         if success:
             print(f"{colored('🟡 Detection:', YELLOW, styles=BOLD)} {colored(url, GREEN, styles=BLINK)} > {colored(identified_db, MAGENTA, styles=BOLD)}")
@@ -47,7 +47,7 @@ def identify_db_get(scrapped_data):
     for url in vuln_links:
         print(f"{colored('🟢 Detection:', WHITE, styles=BOLD)} {colored(url, GREEN, styles=BLINK)} > {colored(identified_db, MAGENTA, styles=BOLD)} - {colored(detection, CYAN, styles=BOLD)}")
     print()
-    return success, identified_db, vuln_links
+    return success, identified_db, vuln_links, param
 
 def check_sql_injection_get(url):
     success = False
@@ -55,13 +55,14 @@ def check_sql_injection_get(url):
     
     parsed_url = urlparse(url)
     query_params = parse_qs(parsed_url.query)
+    params = set()
     
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(f"Erreur lors de la requête originale : {e}")
-        return success, identify_db, None
+        return success, identify_db, None, None
 
     detection = None
     for param, values in query_params.items():
@@ -71,9 +72,9 @@ def check_sql_injection_get(url):
         if not success:
             success, identify_db, detection = error_based_injection_get(query_params, param, original_value, parsed_url)
         if success:
-            break
+            params.add(param)
 
-    return success, identify_db, detection
+    return success, identify_db, detection, params
 
 def error_based_injection_get(query_params, param, original_value, parsed_url):
     for db_type, payloads in error_based_db_payloads.items():
