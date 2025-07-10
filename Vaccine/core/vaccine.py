@@ -9,6 +9,8 @@ from injection.post_db_detector import *
 from injection.get_inject import *
 from injection.post_inject import *
 
+from payloads.get_mysql_payloads import *
+
 def main():
     target_url, output_file, request_method = init()
     scrapped_data = simple_crawler(target_url)
@@ -18,8 +20,10 @@ def main():
     write_scrapped_data(scrapped_data, output_file)
 
     if "get" in request_method.lower():
-        success, db_type, vuln_links, params = identify_db_get(scrapped_data)
-        Injector(success, db_type, vuln_links, params)        
+        vuln_links = identify_db_get(scrapped_data)
+        # get_injection(vuln_links)
+        for vuln_link in vuln_links:
+            Get_Injector(vuln_link)       
             
     elif "post" in request_method.lower():
         pass
