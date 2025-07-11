@@ -1,7 +1,7 @@
 import requests
 import time
 
-from objects.vuln_link import *
+from utils.objects.vuln_link import *
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from utils.ainsi import *
 

@@ -1,7 +1,7 @@
 
 import requests
 from utils.ainsi import *
-from objects.vuln_link import *
+from utils.objects.vuln_link import *
 from urllib.parse import urlparse
 import re
 from bs4 import BeautifulSoup

@@ -3,8 +3,8 @@ from utils.utils import *
 
 from navigation.crawler import *
 
-from injection.get_db_detector import *
-from injection.post_db_detector import *
+from detection.get_db_detector import *
+from detection.post_db_detector import *
 
 from injection.get_inject import *
 from injection.post_inject import *
@@ -21,9 +21,9 @@ def main():
 
     if "get" in request_method.lower():
         vuln_links = identify_db_get(scrapped_data)
-        # get_injection(vuln_links)
-        for vuln_link in vuln_links:
-            Get_Injector(vuln_link)       
+        get_injection(vuln_links)
+        # for vuln_link in vuln_links:
+        #     Get_Injector(vuln_link)       
             
     elif "post" in request_method.lower():
         pass
