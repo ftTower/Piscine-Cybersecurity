@@ -11,6 +11,9 @@ from injection.post_inject import *
 
 from payloads.get_mysql_payloads import *
 
+
+requested_delay = 0.1
+
 def main():
     target_url, output_file, request_method = init()
     scrapped_data = simple_crawler(target_url)

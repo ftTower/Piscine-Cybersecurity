@@ -4,6 +4,7 @@ import time
 from utils.objects.vuln_link import *
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from utils.ainsi import *
+from utils.conf import *
 
 db_error_signatures = {
         "MySQL": ["mysql_fetch_array", "warning: mysql", "supplied argument is not a valid mysql result", "mysql error", "you have an error in your sql syntax"],
@@ -43,7 +44,7 @@ def identify_db_get(scrapped_data):
             vuln_links.add(vuln_link(identified_db, url, query_params, success))
         else:
             print(f"{colored('🟡 Detection:', YELLOW, styles=BOLD)} {colored(url, RED, styles=STRIKETHROUGH)}")
-        time.sleep(1)
+        time.sleep(requested_delay)
     
     print(erase_lines(len(scrapped_data) + 3))
     for vuln_link_obj in vuln_links:

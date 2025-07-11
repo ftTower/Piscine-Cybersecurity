@@ -7,6 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 # from selenium.webdriver.chrome.service import Service
 
+from utils.conf import *
 from utils.ainsi import *
 
 def setup_driver():
@@ -89,7 +90,7 @@ def simple_crawler(start_url, max_pages=5, domain_whitelist=None):
                             absolute_url.startswith('http'):
                         urls_to_visit.append(absolute_url)
                         
-                time.sleep(0.5)
+                time.sleep(requested_delay)
                 
         except Exception as e:
             print(f"Erreur lors de la visite de {current_url}")
