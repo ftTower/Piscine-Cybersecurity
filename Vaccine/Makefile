@@ -12,6 +12,8 @@ labs:
 	cp $(LAB_PATH)/docker-compose.yml $(LAB_PATH)/SQLi-Labs-Docker/
 	cd $(LAB_PATH)/SQLi-Labs-Docker && docker-compose up --build -d
 
+	
+
 clean_labs:
 	if [ -d "$(LAB_PATH)/SQLi-Labs-Docker" ]; then \
 		cd $(LAB_PATH)/SQLi-Labs-Docker && docker-compose down; \
