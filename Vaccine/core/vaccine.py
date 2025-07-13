@@ -1,13 +1,11 @@
 from utils.ainsi import *
 from utils.utils import *
 
-from navigation.crawler import *
+from GET.navigation.crawler import *
 
-from detection.get_db_detector import *
-from detection.post_db_detector import *
+from GET.detection.get_db_detector import *
 
-from injection.get_inject import *
-from injection.post_inject import *
+from GET.injection.get_inject import *
 
 
 
@@ -17,11 +15,11 @@ def main():
     scrapped_data = simple_crawler(target_url)
     
     
-    write_scrapped_data(scrapped_data, output_file)
+    # write_scrapped_data(scrapped_data, output_file)
 
 
     if "get" in request_method.lower():
-        get_injection(identify_db_get(scrapped_data)) 
+        get_injection(identify_db_get(scrapped_data), output_file) 
     elif "post" in request_method.lower():
         pass
     else:
