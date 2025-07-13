@@ -27,14 +27,33 @@ def init():
     return target_url, output_file, request_method
 
 
-def write_scrapped_data(scrapped_data, output_file):
-    import json
-    import os
-    data_folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/")
-    os.makedirs(data_folder_path, exist_ok=True)
-    
-    path = data_folder_path + output_file
-    with open(path, "w") as f:
-        f.write(json.dumps(scrapped_data, indent=4, ensure_ascii=False))
+def write_scrapped_data(scrapped_data, output_file, target_url):
+      import json
+      import os
+      import requests
+      from bs4 import BeautifulSoup
+
+      if output_file == "vaccine_results.txt":
+            try:
+                  response = requests.get(target_url)
+                  response.raise_for_status()
+                  soup = BeautifulSoup(response.text, "html.parser")
+                  page_title = soup.title.string.strip() if soup.title else "untitled"
+                  output_file = f"{page_title}.txt"
+            except Exception as e:
+                  print(f"Error fetching page title: {e}")
+                  output_file = "untitled.txt"
+
+      # Ensure the data folder exists
+      data_folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/")
+      os.makedirs(data_folder_path, exist_ok=True)
+      
+      # Write the scrapped data to the file
+      path = os.path.join(data_folder_path, output_file)
+      with open(path, "w") as f:
+            f.write(json.dumps(scrapped_data, indent=4, ensure_ascii=False))
+            f.write("\n\n")
+      
+      return output_file
 
     
