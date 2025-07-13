@@ -43,7 +43,7 @@ def extract_data(driver):
         data['error'] = str(e)
     return data
 
-def simple_crawler(start_url, max_pages=5, domain_whitelist=None):
+def simple_crawler(start_url, max_pages=10, domain_whitelist=None):
     driver = setup_driver()
     visited_url = set()
     urls_to_visit = [start_url]
