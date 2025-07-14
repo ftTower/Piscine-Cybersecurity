@@ -53,7 +53,7 @@ clean:
 
 
 run: clear
-	python3 ./core/vaccine.py -X POST http://localhost:1338/
+	python3 ./core/vaccine.py http://localhost:1338/
 	echo
 	python3 ./core/vaccine.py -X POST -o mysql_post_login.txt http://localhost:8080/
 

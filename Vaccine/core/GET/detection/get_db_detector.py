@@ -59,7 +59,6 @@ def check_sql_injection_get(url):
     
     parsed_url = urlparse(url)
     query_params = parse_qs(parsed_url.query)
-    params = set()
     
     try:
         response = requests.get(url, timeout=10)

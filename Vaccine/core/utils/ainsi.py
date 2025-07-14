@@ -1,6 +1,6 @@
 # utils.py
 
-ERASE_LINES = False 
+ERASE_LINES = True 
 
 # Codes de réinitialisation/reset
 RESET = "\033[0m"

@@ -9,6 +9,8 @@ from GET.injection.get_inject import *
 
 from POST.post_db_detector import *
 
+from POST.post_inject import *
+
 import requests
 
 
@@ -27,7 +29,7 @@ def main():
     if "get" in request_method.lower():
         get_injection(identify_db_get(scrapped_data), output_file) 
     elif "post" in request_method.lower():
-        success, db_type, method = identify_db_post(scrapped_data)        
+        post_injection(identify_db_post(scrapped_data), output_file)        
         # print(success)
         # print(db_type)
         # print(method)

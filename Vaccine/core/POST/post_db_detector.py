@@ -1,7 +1,9 @@
 from utils.ainsi import *
+from utils.objects.vuln_link import *
 
 import requests
 from bs4 import BeautifulSoup
+from utils.conf import *
 
 db_error_signatures = {
         "MySQL": ["mysql_fetch_array", "warning: mysql", "supplied argument is not a valid mysql result", "mysql error", "you have an error in your sql syntax"],
@@ -75,29 +77,48 @@ def time_based_injection_post(url):
             print(f"    Une erreur inattendue s'est produite: {e}")
     return False, None, None
 
+def check_sql_injection_post(url):
+    success = False
+    db_type = None
+    detection = None
+
+    success, db_type, detection = time_based_injection_post(url)
+    if success == False:
+        success, db_type, detection = error_based_injection_post(url)            
+    if success:
+        print(f"{colored('🟡 Detection:', YELLOW, styles=BOLD)} {colored(url, GREEN, styles=BLINK)} > {colored(db_type, MAGENTA, styles=BOLD)}")
+        return success, db_type, detection  
+
+    print(f"{colored('🟡 Detection:', YELLOW, styles=BOLD)} {colored(url, RED, styles=STRIKETHROUGH)}")
+    return success, db_type, detection  
+    
 
 def identify_db_post(scrapped_data):
-    for url in scrapped_data:
-        
-        success, db_type, detection = time_based_injection_post(url)
-        if success == False:
-            success, db_type, detection = error_based_injection_post(url)            
-        if success:
-            print(f"{colored('🟡 Detection:', YELLOW, styles=BOLD)} {colored(url, GREEN, styles=BLINK)} > {colored(db_type, MAGENTA, styles=BOLD)}")
-            break
-        print(f"{colored('🟡 Detection:', YELLOW, styles=BOLD)} {colored(url, RED, styles=STRIKETHROUGH)}")
-        
-    return False, None, None
-      
-        
-                
-def check_sql_injection_post(url):  
+    print(f"🔴 {colored('Detection:', RED, styles=BOLD)} {colored('GET Method', CYAN, styles=BOLD)}")
     success = False
-    db_identify = None
+    identified_db = None    
+    vuln_links = set()
     
-     
-                
+    for url in scrapped_data:        
+        try:
+            response = requests.get(url, timeout=10)
             
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            print(f"Erreur lors de la requête originale : {e}")
+            return 
         
+        success, db_type, detection = check_sql_injection_post(url)
+        if success:
+            vuln_links.add(vuln_link(db_type, url, None, success))
+        time.sleep(requested_delay)
         
-    
+    print(erase_lines(len(scrapped_data) + 3))
+    if len(vuln_links) < 1:
+        print(f"{colored('🔴 Detection:', WHITE, styles=BOLD)} {colored(url, GREEN, styles=BLINK)} > {colored('Cannot find database', RED, styles=BOLD)}")
+        
+    for vuln_link_obj in vuln_links:
+        url, identified_db, query_params, success = vuln_link_obj.get_infos()
+        print(f"{colored('🟢 Detection:', WHITE, styles=BOLD)} {colored(url, GREEN, styles=BLINK)} > {colored(identified_db, MAGENTA, styles=BOLD)} - {colored(detection, CYAN, styles=BOLD)}")
+    print()
+    return vuln_links
