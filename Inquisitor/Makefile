@@ -1,5 +1,6 @@
 PYTHON := python3
 SCRIPT := /home/attacker/Documents/Piscine-Cybersecurity/Inquisitor/core/main.py
+
 .PHONY: run clean
 
 clear:
