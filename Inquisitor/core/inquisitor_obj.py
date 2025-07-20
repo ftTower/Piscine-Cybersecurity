@@ -9,9 +9,9 @@ def get_output_file_name():
 
 
 class Inquisitor:
-    def __init__(self, target_mac, target_ip, source_mac, source_ip):
-        self.target = Machine(target_mac, target_ip, "Target")
+    def __init__(self, source_mac, source_ip, target_mac, target_ip):
         self.source = Machine(source_mac, source_ip, "Source")
+        self.target = Machine(target_mac, target_ip, "Target")
         self.attacker = Machine(None, None, "attacker")
 
         self.ouput_file = get_output_file_name()

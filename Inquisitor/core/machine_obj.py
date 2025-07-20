@@ -1,3 +1,5 @@
+
+
 class Machine:
     def __init__(self, mac_address, ip_address, type):
         self.ip_address = ip_address
