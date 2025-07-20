@@ -6,7 +6,7 @@ clear:
 	clear
 
 run: clear
-	$(PYTHON) $(SCRIPT)
+	$(PYTHON) $(SCRIPT) test test test test
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
