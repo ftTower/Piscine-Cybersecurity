@@ -7,7 +7,7 @@ def main():
 		sys.exit(1)
 
 	try:
-
+		
 		inquisitor = Inquisitor(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
 
 		while True:
@@ -21,11 +21,12 @@ def main():
 		print(ERASE_LINE)
 		log_success("ARP monitor stopped.")
 	except Exception as e:
-		print(f"{ERASE_LINE}")
-		log_error(f"Fail in main loop: {e}")
+		log_error(f"Fail in main loop :\t{e}")
 
 	return 0
 
 if __name__ == "__main__":
-	log_info("Starting ARP monitor...")	
-	main()
+    print()
+    log_info("Starting ARP monitor...\n")	
+    main()
+    print()

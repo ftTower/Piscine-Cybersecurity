@@ -7,7 +7,7 @@ clear:
 	clear
 
 run: clear
-	$(PYTHON) $(SCRIPT) test test test test
+	$(PYTHON) $(SCRIPT) 1.1.1.1 00:1A:2B:3C:4D:5E 1.1.1.1 00:1A:2B:3C:4D:5E
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
