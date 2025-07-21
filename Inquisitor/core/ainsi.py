@@ -1,5 +1,22 @@
 # utils.py
 
+
+def log_info(to_print):
+    print(f"{colored('[INFO]', BLUE, styles=[BOLD])} : {to_print}")
+
+def log_warning(to_print):
+    print(f"{colored('[WARNING]', YELLOW, styles=[BOLD])} : {to_print}")
+
+def log_error(to_print):
+    print(f"{colored('[ERROR]', RED, styles=[BOLD])} : {to_print}")
+
+def log_success(to_print):
+    print(f"{colored('[SUCCESS]', GREEN, styles=[BOLD])} : {to_print}")
+
+def log_debug(to_print):
+    print(f"{colored('[DEBUG]', MAGENTA, styles=[BOLD])} : {to_print}")
+
+
 ERASE_LINES = True 
 
 # Codes de réinitialisation/reset

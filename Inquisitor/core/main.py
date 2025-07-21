@@ -18,12 +18,14 @@ def main():
 			continue
 
 	except KeyboardInterrupt:
-		print(f"{ERASE_LINE}\nARP monitor stopped.")
+		print(ERASE_LINE)
+		log_success("ARP monitor stopped.")
 	except Exception as e:
-		print(f"{ERASE_LINE}\nFail in main loop: {e}")
+		print(f"{ERASE_LINE}")
+		log_error(f"Fail in main loop: {e}")
 
 	return 0
 
 if __name__ == "__main__":
-	print("Starting ARP monitor...")
+	log_info("Starting ARP monitor...")	
 	main()
