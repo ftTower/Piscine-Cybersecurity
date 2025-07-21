@@ -1,5 +1,8 @@
 # utils.py
+import time
 
+def return_time():
+    return time.strftime("%Y-%m-%d %H:%M:%S")
 
 def log_info(to_print):
     print(f"{colored('[ INFOS ]', BLUE, styles=[BOLD])} : {to_print}")
@@ -84,11 +87,10 @@ def erase_lines(n=1):
         if i < n - 1:
             seq += "\033[1A"
     return seq
-
 def colored(text, foreground=None, background=None, styles=None):
     codes = []
-    if text == None:
-        return codes
+    if text is None:
+        return ""
     if foreground:
         codes.append(foreground)
     if background:
@@ -99,4 +101,5 @@ def colored(text, foreground=None, background=None, styles=None):
     if not codes:
         return text
 
+    return "".join(codes) + text + RESET
     return "".join(codes) + text + RESET
