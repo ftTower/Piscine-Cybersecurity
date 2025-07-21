@@ -17,7 +17,7 @@ all: run
 clear: ## Clears the terminal screen
 	@clear
 
-re : clean run
+re : clean clear run
 
 run: setup
 	@echo "Running $(SCRIPT)..."
