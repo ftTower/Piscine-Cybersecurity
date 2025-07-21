@@ -34,6 +34,7 @@ clean: ## Removes __pycache__ directories and .pyc files, and the virtual enviro
 setup: venv install-deps ## Ensures the virtual environment is ready and dependencies are installed
 
 venv: ## Creates the virtual environment if it doesn't exist
+	@apt install python3-venv
 	@echo "Checking for virtual environment..."
 	@if [ ! -d "$(VENV_DIR)" ]; then \
 		echo "Creating virtual environment at $(VENV_DIR)..."; \
