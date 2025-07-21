@@ -17,7 +17,9 @@ all: run
 clear: ## Clears the terminal screen
 	@clear
 
-run: setup ## Sets up the venv, installs dependencies, and runs the main script
+re : clean run
+
+run: setup
 	@echo "Running $(SCRIPT)..."
 	# Ensure the script is run with the virtual environment's Python
 	$(PYTHON) $(SCRIPT) 1.1.1.1 00:1A:2B:3C:4D:5E 1.1.1.1 00:1A:2B:3C:4D:5E
@@ -34,7 +36,7 @@ clean: ## Removes __pycache__ directories and .pyc files, and the virtual enviro
 setup: venv install-deps ## Ensures the virtual environment is ready and dependencies are installed
 
 venv: ## Creates the virtual environment if it doesn't exist
-	@apt install python3-venv
+	@apt install python3-venv -y
 	@echo "Checking for virtual environment..."
 	@if [ ! -d "$(VENV_DIR)" ]; then \
 		echo "Creating virtual environment at $(VENV_DIR)..."; \
@@ -47,8 +49,6 @@ venv: ## Creates the virtual environment if it doesn't exist
 install-deps: $(VENV_DIR) ## Installs Python dependencies into the virtual environment
 	@echo "Installing/Updating dependencies..."
 	$(PIP) install getmac
-	# Add any other project-specific dependencies here:
-	# $(PIP) install requests beautifulsoup4
 	@echo "Dependencies checked/installed."
 
 help:
