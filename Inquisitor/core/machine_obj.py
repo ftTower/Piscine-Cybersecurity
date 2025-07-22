@@ -71,7 +71,6 @@ def thread_function(obj):
     try :
         cap = pcapy.open_live(interface, 65535, True, 100)
         cap.setfilter("arp")
-        # log_info("Listening for ARP packets...")
         
         def poisoning_setter(header,data):
             sender_mac, sender_ip, target_mac, target_ip = process_packet(header, data, obj)
@@ -80,10 +79,14 @@ def thread_function(obj):
                 log_success(f"{obj}")
 
         while not threading_end_event.is_set():
-            packets_received = cap.dispatch(-1, poisoning_setter)
-            
-            if packets_received == 0:
-                threading_end_event.wait(0.01)
+            if not obj.poisoned:
+                packets_received = cap.dispatch(-1, poisoning_setter)
+                
+                if packets_received == 0:
+                    threading_end_event.wait(0.01)
+            else:
+                #! PUT ARP REPLY
+                pass
                 
     except pcapy.PcapError as e:
         log_error(f"Pcapy error during capture on '{interface}': {e}")
