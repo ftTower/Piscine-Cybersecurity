@@ -161,7 +161,7 @@ Install required packages and clone the project:
 
 ```bash
 sudo apt-get update && sudo apt-get upgrade -y
-sudo apt-get install net-tools iputils-ping iproute2 -y
+sudo apt-get install net-tools iputils-ping iproute2 vim git -y
 git clone https://github.com/ftTower/Piscine-Cybersecurity.git Piscine-Cybersecurity
 cd Piscine-Cybersecurity/Inquisitor
 echo done
