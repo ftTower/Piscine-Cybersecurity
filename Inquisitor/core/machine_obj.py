@@ -65,27 +65,29 @@ def thread_function(obj):
     # log_info(f"thread {obj.type} started")
     
     interface = "enp0s3"
-    cap = None
-    log_info(f"Thread '{obj.type}' for ARP monitoring started on interface: {interface}")
+    # cap = None
+    # log_info(f"Thread '{obj.type}' for ARP monitoring started on interface: {interface}")
     
     try :
-        cap = pcapy.open_live(interface, 65535, True, 100)
-        cap.setfilter("arp")
+        obj.cap_handle = pcapy.open_live(interface, 65535, True, 100)
+        obj.cap_handle.setfilter("arp")
         
         def poisoning_setter(header,data):
             sender_mac, sender_ip, target_mac, target_ip = process_packet(header, data, obj)
             if sender_mac and target_mac:
+                #! PUT ARP REPLY
                 obj.poisoned = True
                 log_success(f"{obj}")
 
         while not threading_end_event.is_set():
             if not obj.poisoned:
-                packets_received = cap.dispatch(-1, poisoning_setter)
+                packets_received = obj.cap_handle.dispatch(-1, poisoning_setter)
                 
-                if packets_received == 0:
-                    threading_end_event.wait(0.01)
+                if packets_received == 0 and not threading_end_event.is_set():
+                    threading_end_event.wait(0.05)
             else:
-                #! PUT ARP REPLY
+                #! PUT ARP REPLY TO MAINTAIN SPOOFING
+                threading_end_event.wait(2)
                 pass
                 
     except pcapy.PcapError as e:
@@ -95,8 +97,8 @@ def thread_function(obj):
     except Exception as e:
         log_error(f"An unexpected error occurred in ARP capture thread: {e}")
     finally:
-        if cap:
-            cap.close()
+        if obj.cap_handle:
+            obj.cap_handle.close()
             log_info(f"Pcapy capture on '{interface}' closed.")
 
     # log_info(f"thread {obj.type} stoped")
@@ -108,12 +110,7 @@ class Machine:
         self.mac_address = mac_address
         self.type = type
         self.poisoned = False
-    
-    def __init__(self, mac_address, ip_address, type):
-        self.ip_address = ip_address
-        self.mac_address = mac_address
-        self.type = type
-        self.poisoned = False
+        self.cap_handle = None
     
         #? FOR ATTACKER MACHINE
         if mac_address == None:
@@ -127,7 +124,7 @@ class Machine:
 
         #? WE WANT TO CHECK FOR BOTH TARGET REQUESTS AND POISON THEM
         if self.type == "Source" or self.type == "Target":
-            thread = threading.Thread(target=thread_function, args=(self,), name=f"Machine-{type}-Thread")
+            thread = threading.Thread(target=thread_function, args=(self,), name=f"Machine-{type}-Thread", daemon=False)
             thread.start()
     
     #! VERIFY INFORMATION GIVED

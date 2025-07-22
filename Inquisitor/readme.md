@@ -61,15 +61,19 @@ sudo systemctl restart networking
 clear && ip a
 ```
 
-
-
 Check connectivity between VMs:
 
 ```bash
 ip a  # Get the IP addresses
-ping <ip-of-source>
-ping <ip-of-target>
+ping -c 1 <ip-of-source>
+ping -c 1 <ip-of-target>
 ```
+### Promiscuous Mode for Attacker VM
+
+To enable promiscuous mode on the attacker VM:
+
+1. Go to **Machine > Settings > Network > Advanced > Promiscuous Mode**.
+2. Select **Allow All**.
 
 ---
 
