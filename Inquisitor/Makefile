@@ -17,12 +17,12 @@ all: run
 clear: ## Clears the terminal screen
 	@clear
 
-re : clean clear run
+re : clean run
 
-run: setup
+run: setup clear
 	@echo "Running $(SCRIPT)..."
 	# Ensure the script is run with the virtual environment's Python
-	$(PYTHON) $(SCRIPT) 1.1.1.1 00:1A:2B:3C:4D:5E 1.1.1.1 00:1A:2B:3C:4D:5E
+	$(PYTHON) $(SCRIPT) 10.0.2.9 08:00:27:d0:ea:99 10.0.2.15 08:00:27:d7:63:bd
 	@echo "Script finished."
 
 clean: ## Removes __pycache__ directories and .pyc files, and the virtual environment
@@ -36,7 +36,7 @@ clean: ## Removes __pycache__ directories and .pyc files, and the virtual enviro
 setup: venv install-deps ## Ensures the virtual environment is ready and dependencies are installed
 
 venv: ## Creates the virtual environment if it doesn't exist
-	@apt install python3-venv -y
+	@sudo apt update && sudo apt install python3-venv libpcap-dev -y
 	@echo "Checking for virtual environment..."
 	@if [ ! -d "$(VENV_DIR)" ]; then \
 		echo "Creating virtual environment at $(VENV_DIR)..."; \
@@ -49,6 +49,9 @@ venv: ## Creates the virtual environment if it doesn't exist
 install-deps: $(VENV_DIR) ## Installs Python dependencies into the virtual environment
 	@echo "Installing/Updating dependencies..."
 	$(PIP) install getmac
+	$(PIP) install wheel setuptools
+	$(PIP) install pcapy-ng
+
 	@echo "Dependencies checked/installed."
 
 help:
