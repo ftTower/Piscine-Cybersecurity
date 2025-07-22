@@ -7,7 +7,7 @@ def safe_exit():
 	print(f"\n{erase_lines(2)}", end="")
 	for thread in threading.enumerate():
 		if thread is not threading.main_thread():
-			thread.join(timeout=5)
+			thread.join(timeout=10)
 			if thread.is_alive():
 				log_error(f"Thread {thread.name} did not terminate gracefully.")
 		log_success(f"Thread {colored(thread.name, YELLOW)} terminate.")

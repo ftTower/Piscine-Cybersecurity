@@ -3,56 +3,9 @@ from ainsi import *
 
 import sys
 from datetime import datetime
-import struct
-import socket
-import pcapy
-import threading
-
-ETH_HLEN = 14
-ARP_ETHERTYPE = 0x0806 #! ARP TYPE
-ARP_REQUEST_OP = 1
-ARP_REPLY_OP = 2
 
 def get_output_file_name():
     return datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".csv"
-
-def process_packet(header, data):
-    sender_mac, sender_ip, target_mac, target_ip = None, None, None, None
-    try:
-        eth_type = struct.unpack("!H", data[12:14])[0]
-
-        if eth_type == ARP_ETHERTYPE:
-            arp_packet = data[ETH_HLEN:]
-
-            operation = struct.unpack("!H", arp_packet[6:8])[0]
-
-            if operation == ARP_REQUEST_OP:
-                log_info(f"Found an arp request")
-
-            sender_mac_bytes = arp_packet[8:14]
-            sender_mac = ":".join(f"{b:02x}" for b in sender_mac_bytes)
-
-            sender_ip_bytes = arp_packet[14:18]
-            sender_ip = socket.inet_ntoa(sender_ip_bytes)
-
-            target_mac_bytes = arp_packet[18:24]
-            target_mac = ":".join(f"{b:02x}" for b in target_mac_bytes)
-
-            target_ip_bytes = arp_packet[24:28]
-            target_ip = socket.inet_ntoa(target_ip_bytes)
-
-            print(f"  Expéditeur MAC : {sender_mac}")
-            print(f"  Expéditeur IP  : {sender_ip}")
-            print(f"  Cible MAC      : {target_mac}")
-            print(f"  Cible IP       : {target_ip}")
-
-    except struct.error as e:
-        log_error(f"Packet decoding error (struct.error): {e}")
-    except IndexError as e:
-        log_error(f"Index error (packet too short or malformed): {e}")
-    except Exception as e:
-        log_error(f"An unexpected error occurred while processing the packet: {e}")
-    return sender_mac, sender_ip, target_mac, target_ip
 
 class Inquisitor:
     def __init__(self, source_ip, source_mac, target_ip, target_mac):
