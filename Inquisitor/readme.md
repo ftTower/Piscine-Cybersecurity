@@ -33,7 +33,16 @@ su -
 
 ## VM Network Configuration
 
-Configure all VMs to use DHCP for the NAT network:
+### Creating a NAT Network
+
+1. In VirtualBox, go to **File > Tools > Network Manager > NAT Networks** and create a new NAT network.  
+    ![Screenshot of Vbox](https://github.com/ftTower/ftTower/blob/main/assets/Malcolm/Vbox_NAT_network.png)
+
+2. For each VM, go to **Machine > Settings > Network**, set "Attached to" as **NAT Network**, and select your created network.  
+    ![Screenshot of VM](https://github.com/ftTower/ftTower/blob/main/assets/Malcolm/vm_network.png)
+
+
+### Configure all VMs to use DHCP for the NAT network:
 
 ```bash
 sudo bash -c 'cat <<EOF > /etc/network/interfaces
@@ -52,13 +61,7 @@ sudo systemctl restart networking
 clear && ip a
 ```
 
-### Creating a NAT Network
 
-1. In VirtualBox, go to **File > Tools > Network Manager > NAT Networks** and create a new NAT network.  
-    ![Screenshot of Vbox](https://github.com/ftTower/ftTower/blob/main/assets/Malcolm/Vbox_NAT_network.png)
-
-2. For each VM, go to **Machine > Settings > Network**, set "Attached to" as **NAT Network**, and select your created network.  
-    ![Screenshot of VM](https://github.com/ftTower/ftTower/blob/main/assets/Malcolm/vm_network.png)
 
 Check connectivity between VMs:
 
