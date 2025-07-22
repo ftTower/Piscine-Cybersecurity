@@ -21,8 +21,8 @@ re : clean run
 
 run: setup clear
 	@echo "Running $(SCRIPT)..."
-	# Ensure the script is run with the virtual environment's Python
-	$(PYTHON) $(SCRIPT) 10.0.2.9 08:00:27:d0:ea:99 10.0.2.15 08:00:27:d7:63:bd
+	@# Ensure the script is run with the virtual environment's Python
+	$(PYTHON) $(SCRIPT) 10.0.2.6 08:00:27:ee:5c:8a 10.0.2.7 08:00:27:e2:a8:e5
 	@echo "Script finished."
 
 clean: ## Removes __pycache__ directories and .pyc files, and the virtual environment
@@ -36,7 +36,7 @@ clean: ## Removes __pycache__ directories and .pyc files, and the virtual enviro
 setup: venv install-deps ## Ensures the virtual environment is ready and dependencies are installed
 
 venv: ## Creates the virtual environment if it doesn't exist
-	@sudo apt update && sudo apt install python3-venv libpcap-dev -y
+	@sudo apt update && sudo apt install python3-venv python3-dev libpcap-dev -y
 	@echo "Checking for virtual environment..."
 	@if [ ! -d "$(VENV_DIR)" ]; then \
 		echo "Creating virtual environment at $(VENV_DIR)..."; \

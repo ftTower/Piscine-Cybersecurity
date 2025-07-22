@@ -4,8 +4,32 @@ from getmac import get_mac_address as gma
 import ipaddress
 import re
 
+import threading
+import time
+
+threading_end_event = threading.Event()
+
+
+def thread_function(obj):
+    # log_info(f"thread {obj.type} started")
+    while not threading_end_event.is_set():
+
+        
+
+        if threading_end_event.wait(3):
+            break
+
+    # log_info(f"thread {obj.type} stoped")
+
+
 class Machine:
     def __init__(self, mac_address, ip_address, type):
+        self.ip_address = ip_address
+        self.mac_address = mac_address
+        self.type = type
+        self.poisoned = False
+    
+    def __init__(self, mac_address, ip_address, type, lock=None):
         self.ip_address = ip_address
         self.mac_address = mac_address
         self.type = type
@@ -17,13 +41,15 @@ class Machine:
         self.verify_ip_adress()
         self.verify_mac_adress()
         log_debug(self)
-    
-    #! MAN IN THE MIDDLE
+
+        if self.type == "Source" or self.type == "Target":
+            thread = threading.Thread(target=thread_function, args=(self,))
+            thread.start()
     
     def verify_ip_adress(self):
         if not self.ip_address:
             return 
-        ipaddress.ip_address(self.ip_address)
+        ipaddress.ip_address(self.ip_address) 
     
     def verify_mac_adress(self):
         if not self.ip_address:
