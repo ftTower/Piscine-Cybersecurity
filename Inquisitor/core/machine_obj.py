@@ -35,17 +35,22 @@ class Machine:
         self.type = type
         self.poisoned = False
     
+        #? FOR ATTACKER MACHINE
         if mac_address == None:
            self.find_mac_adress() 
     
+        #? FOR ALL MACHINES VERIFY DATA FORMAT
         self.verify_ip_adress()
         self.verify_mac_adress()
+        
         log_debug(self)
 
+        #? WE WANT TO CHECK FOR BOTH TARGET REQUESTS AND POISON THEM
         if self.type == "Source" or self.type == "Target":
             thread = threading.Thread(target=thread_function, args=(self,))
             thread.start()
     
+    #! VERIFY INFORMATION GIVED
     def verify_ip_adress(self):
         if not self.ip_address:
             return 
@@ -57,10 +62,12 @@ class Machine:
         mac_pattern = re.compile(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$')
         if not mac_pattern.match(self.mac_address):
             raise Exception("Invalid MAC address format")
-            
+    
+    #! FIND MAC ADRESS FOR ATTACKER
     def find_mac_adress(self):
         self.mac_address = gma()
     
+    #! RESTORE ARP FOR ONE TARGET
     def restore_arp_table(self):
         pass
     
