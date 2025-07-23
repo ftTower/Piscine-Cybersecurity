@@ -22,7 +22,7 @@ re : clean run
 run: setup clear
 	@echo "Running $(SCRIPT)..."
 	@# Ensure the script is run with the virtual environment's Python
-	$(PYTHON) $(SCRIPT) "10.0.2.11" "08:00:27:13:0b:43" "10.0.2.15" "08:00:27:c1:37:be"
+	$(PYTHON) $(SCRIPT) "10.0.2.12" "08:00:27:13:0b:43" "10.0.2.10" "08:00:27:c1:37:be"
 	@echo "Script finished."
 
 clean: ## Removes __pycache__ directories and .pyc files, and the virtual environment

