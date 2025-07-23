@@ -43,6 +43,9 @@ def send_arp_reply(interface, attacker_mac, impersonated_ip, target_mac, target_
     except Exception as e:
         log_error(f"Error sending ARP reply: {e}")
 
+def process_ftp_packet(header, data):
+    pass
+
 def process_request_packet(header, data, inquisitor):
     sender_mac, sender_ip, target_mac, target_ip = None, None, None, None
     try:

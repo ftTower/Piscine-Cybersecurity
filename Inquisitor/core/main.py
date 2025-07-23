@@ -6,6 +6,7 @@ def safe_exit(inquisitor):
 	threading_end_event.set()
 	print(f"\n{erase_lines(2)}", end="\n")
 	for thread in threading.enumerate():
+		print(thread.name)
 		if thread is not threading.main_thread():
 			thread.join(timeout=2)
 		log_warning(f"Thread {colored(thread.name, RED)} terminate.")
