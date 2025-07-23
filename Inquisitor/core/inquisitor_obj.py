@@ -29,6 +29,14 @@ class Inquisitor:
         self.ouput_file = get_output_file_name()
         self.threading()
 
+    #! ALL PROCESS HANDLER
+
+    def threading(self):
+        thread_request = threading.Thread(target=self.looking_for_arp_requests, daemon=True, name="ARP Listener")
+        thread_reply = threading.Thread(target=self.arp_replier, daemon=True, name="ARP Replier")
+        thread_request.start()
+        thread_reply.start()
+
     #! MAN IN THE MIDDLE
 
     def looking_for_arp_requests(self):
@@ -81,12 +89,8 @@ class Inquisitor:
                 # log_success("REPLY SEND TO TARGET")
             threading_end_event.wait(5)
 
-    
 
-    def threading(self):
-        thread_request = threading.Thread(target=self.looking_for_arp_requests, daemon=True, name="ARP Listener")
-        thread_reply = threading.Thread(target=self.arp_replier, daemon=True, name="ARP Replier")
-        thread_request.start()
-        thread_reply.start()
+
+
 
     
