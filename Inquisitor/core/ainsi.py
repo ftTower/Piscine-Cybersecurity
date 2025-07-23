@@ -4,6 +4,9 @@ import time
 def return_time():
     return time.strftime("%Y-%m-%d %H:%M:%S")
 
+def log_exit(to_print):
+    print(f"{colored('[  EXIT ]', BLACK, styles=[BLINK])} : {to_print}")
+
 def log_info(to_print):
     print(f"{colored('[ INFOS ]', BLUE, styles=[BOLD])} : {to_print}")
 

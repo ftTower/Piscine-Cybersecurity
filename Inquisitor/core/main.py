@@ -4,12 +4,12 @@ from ainsi import *
 
 def safe_exit(inquisitor):
 	threading_end_event.set()
-	print(f"\n{erase_lines(2)}", end="")
+	print(f"\n{erase_lines(2)}", end="\n")
 	for thread in threading.enumerate():
 		if thread is not threading.main_thread():
 			thread.join(timeout=2)
-		log_success(f"Thread {colored(thread.name, RED)} terminate.")
-	log_success("ARP monitor stopped.")
+		log_warning(f"Thread {colored(thread.name, RED)} terminate.")
+	log_exit("ARP monitor stopped.\n")
 	sys.exit(0)
 
 def main():
@@ -26,9 +26,9 @@ def main():
 		safe_exit(inquisitor)
 	except Exception as e:
 		log_error(f"Fail in main loop :\t{e}")
-	log_info("Stoping ARP monitor...")
+	log_exit("Stoping ARP monitor...")
 	return 0
 
 if __name__ == "__main__":
-    log_info("Starting ARP monitor...\n\n\n\n\n")	
+    log_info("Starting ARP monitor...\n\n\n\n\n\n")	
     main()

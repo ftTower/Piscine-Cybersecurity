@@ -19,7 +19,7 @@ This project requires three virtual machines:
 
 Enable clipboard sharing for each VM:
 
-1. In VirtualBox, navigate to **Devices > Shared Clipboard > Bidirectional**.
+1. In VirtualBox, go to **Devices > Shared Clipboard > Bidirectional**.
 
 ### Root Access
 
@@ -38,12 +38,12 @@ su -
 1. In VirtualBox, go to **File > Tools > Network Manager > NAT Networks** and create a new NAT network.  
     ![Screenshot of VirtualBox NAT Network](https://github.com/ftTower/ftTower/blob/main/assets/Malcolm/Vbox_NAT_network.png)
 
-2. For each VM, navigate to **Machine > Settings > Network**, set "Attached to" as **NAT Network**, and select the network you created.  
+2. For each VM, go to **Machine > Settings > Network**, set "Attached to" as **NAT Network**, and select the network you created.  
     ![Screenshot of VM Network Settings](https://github.com/ftTower/ftTower/blob/main/assets/Malcolm/vm_network.png)
 
 ### Configuring DHCP for NAT Network
 
-Ensure all VMs use DHCP for the NAT network:
+Make sure all VMs use DHCP for the NAT network:
 
 ```bash
 sudo bash -c 'cat <<EOF > /etc/network/interfaces
@@ -64,7 +64,7 @@ clear && ip a
 
 ### Testing Connectivity Between VMs
 
-1. Retrieve the IP addresses of each VM:
+1. Get the IP addresses of each VM:
 
    ```bash
    ip a
@@ -98,7 +98,7 @@ sudo systemctl status vsftpd
 sudo cp /etc/vsftpd.conf /etc/vsftpd.conf.original
 ```
 
-Edit `/etc/vsftpd.conf` to enhance security and enable passive mode. Ensure the following lines are present:
+Edit `/etc/vsftpd.conf` to improve security and enable passive mode. Make sure these lines are present:
 
 ```ini
 anonymous_enable=NO
@@ -112,7 +112,7 @@ xferlog_enable=YES
 log_ftp_protocol=YES
 ```
 
-Edit the file using:
+Edit the file with:
 
 ```bash
 sudo vim /etc/vsftpd.conf
@@ -180,7 +180,7 @@ echo "Setup complete."
 
 ### Gathering Network Information
 
-On the **Source VM**, retrieve the IP and MAC addresses:
+On the **Source VM**, get the IP and MAC addresses:
 
 ```bash
 ip a
@@ -189,7 +189,7 @@ ip a
 - **IPv4 Address:** `inet <Source_IP_Address>`
 - **MAC Address:** `link/ether <Source_MAC_Address>`
 
-On the **Target VM**, retrieve the IP and MAC addresses:
+On the **Target VM**, get the IP and MAC addresses:
 
 ```bash
 ip a
@@ -200,7 +200,7 @@ ip a
 
 ### Running Inquisitor
 
-Start the attack tool on the Inquisitor(Attacker) VM:
+Start the attack tool on the Inquisitor (Attacker) VM:
 
 ```bash
 ./ft_malcolm <source_ip> <source_mac_address> <target_ip> <target_mac_address>
@@ -214,3 +214,19 @@ Replace the placeholders with the actual values:
 - `<target_mac_address>`: Target VM's MAC address
 
 ---
+
+### Flushing ARP Cache on VMs
+
+To clear the ARP cache and force the VM to send a new one, use:
+
+```bash
+ip -s -s neigh flush all && ping -c 1 <ip_address_of_other_vm>
+```
+
+To view the ARP cache and compare with the other VM's MAC address:
+
+```bash
+clear && ip a && echo && ip neigh show
+```
+
+Normally, Inquisitor will replace both MAC addresses mapped to the other IPs with the attacker's MAC address.
