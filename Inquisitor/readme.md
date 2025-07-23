@@ -116,6 +116,7 @@ Edit the file with:
 
 ```bash
 sudo vim /etc/vsftpd.conf
+sudo systemctl restart vsftpd
 ```
 
 Create a dedicated FTP user and set up the directory:
@@ -169,6 +170,7 @@ Install required packages and clone the project repository:
 ```bash
 sudo apt-get update && sudo apt-get upgrade -y
 sudo apt-get install net-tools iputils-ping iproute2 vim git -y
+sudo sysctl -w net.ipv4.ip_forward=1
 git clone https://github.com/ftTower/Piscine-Cybersecurity.git Piscine-Cybersecurity
 cd Piscine-Cybersecurity/Inquisitor
 echo "Setup complete."

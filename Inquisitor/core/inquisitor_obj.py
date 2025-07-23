@@ -53,11 +53,11 @@ class Inquisitor:
             log_warning("FTP listener stopped before poisoning was complete due to shutdown event.")
             return
 
-        # cap_ftp = None
+        cap_ftp = None
 
         try:
             cap_ftp = pcapy.open_live(self.interface, 65535, True, 100)
-            cap_ftp.setfilter("tcp port 21 or tcp port 20")
+            cap_ftp.setfilter(f"(tcp port 21 or tcp port 20 or tcp portrange 40000-50000) and (host {self.source.ip_address} or host {self.target.ip_address})")
         
             while not threading_end_event.is_set():
                 header, packet = cap_ftp.next()
@@ -72,9 +72,9 @@ class Inquisitor:
             log_error(f"Check that the interface '{self.interface}' exists and is operational.")
         except Exception as e:
             log_error(f"An unexpected error occurred in the looking_for_arp_requests function: {e}")
-        # finally:
-        #     if cap_ftp:
-        #         cap_ftp.close()
+        finally:
+            if cap_ftp:
+                cap_ftp.close()
 
     def arp_listener(self):
         count = 0
@@ -108,9 +108,9 @@ class Inquisitor:
             log_error(f"Check that the interface '{self.interface}' exists and is operational.")
         except Exception as e:
             log_error(f"An unexpected error occurred in the looking_for_arp_requests function: {e}")
-        # finally:
-        #     if cap_arp:
-        #         cap_arp.close()
+        finally:
+            if cap_arp:
+                cap_arp.close()
 
     def arp_replier(self):
         switch = False
