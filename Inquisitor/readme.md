@@ -11,19 +11,19 @@ This project requires three virtual machines:
 - **Inquisitor VM:** Used as the attacker.
 
 **Recommended OS:** [Debian 12.11.0](https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.11.0-amd64-netinst.iso)  
-**Virtualization:** Oracle VM VirtualBox
+**Virtualization Software:** Oracle VM VirtualBox
 
-> **Tip:** Install VirtualBox Guest Additions for clipboard sharing and drag-and-drop.
+> **Tip:** Install VirtualBox Guest Additions to enable clipboard sharing and drag-and-drop functionality.
 
 ### Shared Clipboard Configuration
 
 Enable clipboard sharing for each VM:
 
-- In VirtualBox, go to **Devices > Shared Clipboard > Bidirectional**.
+1. In VirtualBox, navigate to **Devices > Shared Clipboard > Bidirectional**.
 
 ### Root Access
 
-Switch to root to avoid modifying the sudoers file:
+Switch to the root user to avoid modifying the sudoers file:
 
 ```bash
 su -
@@ -36,13 +36,14 @@ su -
 ### Creating a NAT Network
 
 1. In VirtualBox, go to **File > Tools > Network Manager > NAT Networks** and create a new NAT network.  
-    ![Screenshot of Vbox](https://github.com/ftTower/ftTower/blob/main/assets/Malcolm/Vbox_NAT_network.png)
+    ![Screenshot of VirtualBox NAT Network](https://github.com/ftTower/ftTower/blob/main/assets/Malcolm/Vbox_NAT_network.png)
 
-2. For each VM, go to **Machine > Settings > Network**, set "Attached to" as **NAT Network**, and select your created network.  
-    ![Screenshot of VM](https://github.com/ftTower/ftTower/blob/main/assets/Malcolm/vm_network.png)
+2. For each VM, navigate to **Machine > Settings > Network**, set "Attached to" as **NAT Network**, and select the network you created.  
+    ![Screenshot of VM Network Settings](https://github.com/ftTower/ftTower/blob/main/assets/Malcolm/vm_network.png)
 
+### Configuring DHCP for NAT Network
 
-### Configure all VMs to use DHCP for the NAT network:
+Ensure all VMs use DHCP for the NAT network:
 
 ```bash
 sudo bash -c 'cat <<EOF > /etc/network/interfaces
@@ -56,30 +57,36 @@ iface lo inet loopback
 auto enp0s3
 iface enp0s3 inet dhcp
 EOF'
-echo "Network configuration replaced. Implementing DHCP for NAT network."
+echo "Network configuration updated. Using DHCP for NAT network."
 sudo systemctl restart networking
 clear && ip a
 ```
 
-Check connectivity between VMs:
+### Testing Connectivity Between VMs
 
-```bash
-ip a  # Get the IP addresses
-ping -c 1 <ip-of-source>
-ping -c 1 <ip-of-target>
-```
-### Promiscuous Mode for Attacker VM
+1. Retrieve the IP addresses of each VM:
 
-To enable promiscuous mode on the attacker VM:
+   ```bash
+   ip a
+   ```
 
-1. Go to **Machine > Settings > Network > Advanced > Promiscuous Mode**.
-2. Select **Allow All**.
+2. Test connectivity by pinging the other VMs:
+
+   ```bash
+   ping -c 1 <ip-of-source>
+   ping -c 1 <ip-of-target>
+   ```
+
+### Enabling Promiscuous Mode for the Attacker VM
+
+1. In VirtualBox, go to **Machine > Settings > Network > Advanced > Promiscuous Mode**.
+2. Set it to **Allow All**.
 
 ---
 
-# Preparation for Attack Demo
+## Preparation for Attack Demo
 
-## Setting Up the FTP Server (Target VM)
+### Setting Up the FTP Server (Target VM)
 
 Install and configure the FTP server:
 
@@ -91,7 +98,7 @@ sudo systemctl status vsftpd
 sudo cp /etc/vsftpd.conf /etc/vsftpd.conf.original
 ```
 
-Edit `/etc/vsftpd.conf` to enhance security and enable passive mode. Ensure these lines are present:
+Edit `/etc/vsftpd.conf` to enhance security and enable passive mode. Ensure the following lines are present:
 
 ```ini
 anonymous_enable=NO
@@ -105,7 +112,7 @@ xferlog_enable=YES
 log_ftp_protocol=YES
 ```
 
-Edit the file with:
+Edit the file using:
 
 ```bash
 sudo vim /etc/vsftpd.conf
@@ -121,11 +128,11 @@ sudo chmod 755 /home/ftpuser/ftp_files
 sudo systemctl restart vsftpd
 ```
 
-> **Note:** Remember the password set for `ftpuser`—you'll need it for FTP access.
+> **Note:** Remember the password you set for `ftpuser`—you will need it for FTP access.
 
 ---
 
-## Testing the FTP Client (Source VM)
+### Testing the FTP Client (Source VM)
 
 On the source VM, install the FTP client and create a test file:
 
@@ -134,7 +141,7 @@ sudo apt install ftp -y
 echo "This is a test file from the client." > ~/client_test.txt
 ```
 
-Connect to the FTP server (replace `<Target_IP>` with your target VM's IP):
+Connect to the FTP server (replace `<Target_IP>` with the target VM's IP):
 
 ```bash
 ftp <Target_IP>
@@ -155,22 +162,55 @@ ls
 
 ---
 
-This setup ensures you have a working FTP server and client for practicing FTP-related cybersecurity exercises.
-
----
-
 ## Setting Up the Attacker VM (Inquisitor)
 
-Install required packages and clone the project:
+Install required packages and clone the project repository:
 
 ```bash
 sudo apt-get update && sudo apt-get upgrade -y
 sudo apt-get install net-tools iputils-ping iproute2 vim git -y
 git clone https://github.com/ftTower/Piscine-Cybersecurity.git Piscine-Cybersecurity
 cd Piscine-Cybersecurity/Inquisitor
-echo done
+echo "Setup complete."
 ```
 
 ---
 
-You are now ready to begin your cybersecurity exercises with a properly configured environment.
+## Man-in-the-Middle Attack
+
+### Gathering Network Information
+
+On the **Source VM**, retrieve the IP and MAC addresses:
+
+```bash
+ip a
+```
+
+- **IPv4 Address:** `inet <Source_IP_Address>`
+- **MAC Address:** `link/ether <Source_MAC_Address>`
+
+On the **Target VM**, retrieve the IP and MAC addresses:
+
+```bash
+ip a
+```
+
+- **IPv4 Address:** `inet <Target_IP_Address>`
+- **MAC Address:** `link/ether <Target_MAC_Address>`
+
+### Running Inquisitor
+
+Start the attack tool on the Inquisitor(Attacker) VM:
+
+```bash
+./ft_malcolm <source_ip> <source_mac_address> <target_ip> <target_mac_address>
+```
+
+Replace the placeholders with the actual values:
+
+- `<source_ip>`: Source VM's IP address
+- `<source_mac_address>`: Source VM's MAC address
+- `<target_ip>`: Target VM's IP address
+- `<target_mac_address>`: Target VM's MAC address
+
+---
