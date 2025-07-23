@@ -32,14 +32,14 @@ class Inquisitor:
     #! ALL PROCESS HANDLER
 
     def threading(self):
-        thread_request = threading.Thread(target=self.looking_for_arp_requests, daemon=True, name="ARP Listener")
+        thread_request = threading.Thread(target=self.arp_listener, daemon=True, name="ARP Listener")
         thread_reply = threading.Thread(target=self.arp_replier, daemon=True, name="ARP Replier")
         thread_request.start()
         thread_reply.start()
 
     #! MAN IN THE MIDDLE
 
-    def looking_for_arp_requests(self):
+    def arp_listener(self):
         interface = "enp0s3"
         count = 0
         priting_machines(self, count)
